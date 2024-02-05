@@ -135,7 +135,9 @@ fn split<'a>(mut s: &'a str) -> Vec<&'a str> {
         // println!("Found: {idxs:?}");
         if idxs.is_empty() {
             // println!("Left: {s:?}");
-            ret.push(s);
+            if !s.is_empty() {
+                ret.push(s);
+            }
             break;
         } else {
             idxs.sort_by_key(|k| k.0);
@@ -179,7 +181,7 @@ fn _tokenise(x: &str) -> Token {
         "+" => Token::Op(Op::Add),
         "-" => Token::Op(Op::Sub),
         "^" => Token::Op(Op::Pow),
-        "rt" | "root" => Token::Op(Op::Root),
+        "sqrt" | "rt" | "root" => Token::Op(Op::Root),
         "log" | "lg" => Token::Op(Op::Log),
 
         y => {
@@ -189,5 +191,73 @@ fn _tokenise(x: &str) -> Token {
                 Token::Invalid
             }
         }
+    }
+}
+
+mod test {
+    #[cfg(test)]
+    use crate::tokeniser::*;
+
+    #[test]
+    fn test_split() {
+        assert_eq!(split("a b"), vec!["a", "b"]);
+        assert_eq!(split("a/b"), vec!["a", "/", "b"]);
+        assert_eq!(split("a*b"), vec!["a", "*", "b"]);
+        assert_eq!(split("a/ b"), vec!["a", "/", "b"]);
+        assert_eq!(
+            split("a/ b*/////"),
+            vec!["a", "/", "b", "*", "/", "/", "/", "/", "/"]
+        );
+        assert_eq!(split("log a b"), vec!["log", "a", "b"]);
+        assert_eq!(split("sqrt a ^ b"), vec!["sqrt", "a", "^", "b"]);
+    }
+
+    #[test]
+    fn test_priv_tokenise() {
+        assert_eq!(_tokenise("*"), Token::Op(Op::Mul));
+        assert_eq!(_tokenise("/"), Token::Op(Op::Div));
+        assert_eq!(_tokenise("+"), Token::Op(Op::Add));
+        assert_eq!(_tokenise("-"), Token::Op(Op::Sub));
+        assert_eq!(_tokenise("^"), Token::Op(Op::Pow));
+        assert_eq!(_tokenise("sqrt"), Token::Op(Op::Root));
+        assert_eq!(_tokenise("log"), Token::Op(Op::Log));
+        assert_eq!(_tokenise("123"), Token::Number(123.0));
+        assert_eq!(_tokenise("123.0"), Token::Number(123.0));
+        assert_eq!(_tokenise(".01"), Token::Number(0.01));
+    }
+
+    #[test]
+    fn test_tokenize() {
+        assert_eq!(
+            tokenise("1/123"),
+            vec![Token::Number(1.0), Token::Op(Op::Div), Token::Number(123.0)]
+        );
+        assert_eq!(
+            tokenise("1 123"),
+            vec![Token::Number(1.0), Token::Number(123.0)]
+        );
+        assert_eq!(
+            tokenise("1*123"),
+            vec![Token::Number(1.0), Token::Op(Op::Mul), Token::Number(123.0)]
+        );
+        assert_eq!(
+            tokenise("1*123/321"),
+            vec![
+                Token::Number(1.0),
+                Token::Op(Op::Mul),
+                Token::Number(123.0),
+                Token::Op(Op::Div),
+                Token::Number(321.0)
+            ]
+        );
+        assert_eq!(
+            tokenise("a 1*123"),
+            vec![
+                Token::Invalid,
+                Token::Number(1.0),
+                Token::Op(Op::Mul),
+                Token::Number(123.0)
+            ]
+        );
     }
 }
