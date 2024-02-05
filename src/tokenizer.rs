@@ -159,20 +159,20 @@ fn split<'a>(mut s: &'a str) -> Vec<&'a str> {
     ret
 }
 
-pub fn dbg_tokenise(s: &str) -> String {
+pub fn dbg_tokenize(s: &str) -> String {
     split(s)
         .iter()
-        .map(|x| (x.to_string(), _tokenise(x)))
+        .map(|x| (x.to_string(), _tokenize(x)))
         .collect::<Vec<(String, Token)>>()
         .dbg()
-        .unwrap_or("Failed to tokenise".to_string())
+        .unwrap_or("Failed to tokenize".to_string())
 }
 
-pub fn tokenise(s: &str) -> Vec<Token> {
-    split(s).into_iter().map(_tokenise).collect()
+pub fn tokenize(s: &str) -> Vec<Token> {
+    split(s).into_iter().map(_tokenize).collect()
 }
 
-fn _tokenise(x: &str) -> Token {
+fn _tokenize(x: &str) -> Token {
     let x = x.to_lowercase();
     // println!("x: {x:?}");
     match x.as_str() {
@@ -196,7 +196,7 @@ fn _tokenise(x: &str) -> Token {
 
 mod test {
     #[cfg(test)]
-    use crate::tokeniser::*;
+    use crate::tokenizer::*;
 
     #[test]
     fn test_split() {
@@ -213,35 +213,35 @@ mod test {
     }
 
     #[test]
-    fn test_priv_tokenise() {
-        assert_eq!(_tokenise("*"), Token::Op(Op::Mul));
-        assert_eq!(_tokenise("/"), Token::Op(Op::Div));
-        assert_eq!(_tokenise("+"), Token::Op(Op::Add));
-        assert_eq!(_tokenise("-"), Token::Op(Op::Sub));
-        assert_eq!(_tokenise("^"), Token::Op(Op::Pow));
-        assert_eq!(_tokenise("sqrt"), Token::Op(Op::Root));
-        assert_eq!(_tokenise("log"), Token::Op(Op::Log));
-        assert_eq!(_tokenise("123"), Token::Number(123.0));
-        assert_eq!(_tokenise("123.0"), Token::Number(123.0));
-        assert_eq!(_tokenise(".01"), Token::Number(0.01));
+    fn test_priv_tokenize() {
+        assert_eq!(_tokenize("*"), Token::Op(Op::Mul));
+        assert_eq!(_tokenize("/"), Token::Op(Op::Div));
+        assert_eq!(_tokenize("+"), Token::Op(Op::Add));
+        assert_eq!(_tokenize("-"), Token::Op(Op::Sub));
+        assert_eq!(_tokenize("^"), Token::Op(Op::Pow));
+        assert_eq!(_tokenize("sqrt"), Token::Op(Op::Root));
+        assert_eq!(_tokenize("log"), Token::Op(Op::Log));
+        assert_eq!(_tokenize("123"), Token::Number(123.0));
+        assert_eq!(_tokenize("123.0"), Token::Number(123.0));
+        assert_eq!(_tokenize(".01"), Token::Number(0.01));
     }
 
     #[test]
     fn test_tokenize() {
         assert_eq!(
-            tokenise("1/123"),
+            tokenize("1/123"),
             vec![Token::Number(1.0), Token::Op(Op::Div), Token::Number(123.0)]
         );
         assert_eq!(
-            tokenise("1 123"),
+            tokenize("1 123"),
             vec![Token::Number(1.0), Token::Number(123.0)]
         );
         assert_eq!(
-            tokenise("1*123"),
+            tokenize("1*123"),
             vec![Token::Number(1.0), Token::Op(Op::Mul), Token::Number(123.0)]
         );
         assert_eq!(
-            tokenise("1*123/321"),
+            tokenize("1*123/321"),
             vec![
                 Token::Number(1.0),
                 Token::Op(Op::Mul),
@@ -251,7 +251,7 @@ mod test {
             ]
         );
         assert_eq!(
-            tokenise("a 1*123"),
+            tokenize("a 1*123"),
             vec![
                 Token::Invalid,
                 Token::Number(1.0),

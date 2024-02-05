@@ -1,26 +1,26 @@
-use tokeniser::tokenise;
+use tokenizer::tokenize;
 
-use crate::{parser::Parse, tokeniser::*};
+use crate::{parser::Parse, tokenizer::*};
 
 mod parser;
-mod tokeniser;
+mod tokenizer;
 
 fn test(s: &str) {
-    println!("{}", dbg_tokenise(s));
-    println!("{:?}", tokenise(s).parse());
+    println!("{}", dbg_tokenize(s));
+    println!("{:?}", tokenize(s).parse());
 }
 
 fn main() {
-    // println!("{}", dbg_tokenise("20 / 12"));
-    // println!("{:?}", tokenise("20 * 12").parse());
+    // println!("{}", dbg_tokenize("20 / 12"));
+    // println!("{:?}", tokenize("20 * 12").parse());
 
     loop {
         let mut line = String::new();
         std::io::stdin().read_line(&mut line).unwrap();
         let line = line.trim();
 
-        // println!("{}", dbg_tokenise(line));
-        let out = tokenise(line).parse().unwrap();
+        // println!("{}", dbg_tokenize(line));
+        let out = tokenize(line).parse().unwrap();
         println!("{:?}", out.first().unwrap().as_nr().unwrap());
     }
 }
