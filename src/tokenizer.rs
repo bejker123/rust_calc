@@ -87,15 +87,6 @@ impl Token {
     }
 }
 
-// impl Token {
-//     pub fn is_valid(&self) -> bool {
-//         if let a Token::Invalid = self {
-//             return false;
-//         }
-//         true
-//     }
-// }
-
 pub trait DbgDisplay {
     fn dbg(&self) -> Result<String, std::fmt::Error>;
 }
