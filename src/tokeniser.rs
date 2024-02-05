@@ -1,4 +1,8 @@
-use std::fmt::{Debug, Write};
+use std::{
+    collections::binary_heap::Iter,
+    fmt::{Debug, Write},
+    io::Read,
+};
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Op {
@@ -14,14 +18,27 @@ pub enum Op {
 impl Op {
     pub fn apply(&self, x: Option<f64>, y: Option<f64>, z: Option<f64>) -> Token {
         // let data = data.iter().flatten().cloned().collect::<Vec<f64>>();
+        // println!("{x:?} {y:?} {z:?}");
         match self {
             Op::Mul => Token::Number(x.unwrap() * y.unwrap()),
             Op::Div => Token::Number(x.unwrap() / y.unwrap()),
             Op::Add => Token::Number(x.unwrap() + y.unwrap()),
             Op::Sub => Token::Number(x.unwrap() - y.unwrap()),
             Op::Pow => Token::Number(x.unwrap().powf(y.unwrap())),
-            Op::Root => Token::Number(x.unwrap().sqrt()),
-            Op::Log => Token::Number(x.unwrap().log(y.unwrap())),
+            Op::Root => Token::Number(y.unwrap().sqrt()),
+            Op::Log => Token::Number(z.unwrap().log(y.unwrap())),
+        }
+    }
+
+    pub fn is_forward(&self) -> bool {
+        match self {
+            Op::Mul => false,
+            Op::Div => false,
+            Op::Add => false,
+            Op::Sub => false,
+            Op::Pow => false,
+            Op::Root => true,
+            Op::Log => true,
         }
     }
 }
@@ -103,8 +120,46 @@ impl DbgDisplay for Vec<(String, Token)> {
     }
 }
 
+fn split<'a>(mut s: &'a str) -> Vec<&'a str> {
+    let pats = [" ", "*", "/", "+", "-", "^"];
+    let mut ret = Vec::new();
+    // println!("Splitting: {s:?}");
+    loop {
+        let mut idxs = Vec::new();
+        for i in pats {
+            // println!("Looking for: {i:?} in {s:?}");
+            if let Some(x) = s.find(i) {
+                idxs.push((x, i.len()));
+            }
+        }
+        // println!("Found: {idxs:?}");
+        if idxs.is_empty() {
+            // println!("Left: {s:?}");
+            ret.push(s);
+            break;
+        } else {
+            idxs.sort_by_key(|k| k.0);
+            let (x, ln) = idxs.first().unwrap().to_owned();
+            // println!("Found: {x:?} {ln:?}");
+            let to_push = &s[..x];
+            if !to_push.is_empty() {
+                ret.push(to_push);
+                // println!("{to_push:?} {s:?}");
+            }
+            let delim = &s[x..x + ln];
+            // println!("delim: {delim:?}");
+            if delim != " " {
+                ret.push(delim);
+            }
+            s = &s[x + ln..];
+        }
+    }
+    ret
+}
+
 pub fn dbg_tokenise(s: &str) -> String {
-    s.split(" ")
+    split(s)
+        .iter()
         .map(|x| (x.to_string(), _tokenise(x)))
         .collect::<Vec<(String, Token)>>()
         .dbg()
@@ -112,11 +167,12 @@ pub fn dbg_tokenise(s: &str) -> String {
 }
 
 pub fn tokenise(s: &str) -> Vec<Token> {
-    s.split(" ").map(_tokenise).collect()
+    split(s).into_iter().map(_tokenise).collect()
 }
 
 fn _tokenise(x: &str) -> Token {
     let x = x.to_lowercase();
+    // println!("x: {x:?}");
     match x.as_str() {
         "*" => Token::Op(Op::Mul),
         "/" => Token::Op(Op::Div),
