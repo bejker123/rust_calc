@@ -1,4 +1,45 @@
-use crate::{DbgDisplay, Op, Token, TokenType};
+use crate::{DbgDisplay, OpType, Token, TokenType};
+
+#[derive(Debug, Clone)]
+pub enum Op {
+    Mul(Box<Op>, Box<Op>),
+    Div(Box<Op>, Box<Op>),
+    Add(Box<Op>, Box<Op>),
+    Sub(Box<Op>, Box<Op>),
+    Pow(Box<Op>, Box<Op>),
+    Root(Box<Op>),
+    Log(Box<Op>, Box<Op>),
+    Number(f64),
+}
+
+impl Op {
+    pub fn apply(&self) -> Result<Op, f64> {
+        match self {
+            Op::Number(x) => Err(x.clone()),
+            Op::Mul(x, y) => match (*x.clone(), *y.clone()) {
+                (x, y) => Err(x.apply().expect_err("") * y.apply().expect_err("")),
+            },
+            Op::Div(x, y) => match (*x.clone(), *y.clone()) {
+                (x, y) => Err(x.apply().expect_err("") / y.apply().expect_err("")),
+            },
+            Op::Add(x, y) => match (*x.clone(), *y.clone()) {
+                (x, y) => Err(x.apply().expect_err("") + y.apply().expect_err("")),
+            },
+            Op::Sub(x, y) => match (*x.clone(), *y.clone()) {
+                (x, y) => Err(x.apply().expect_err("") - y.apply().expect_err("")),
+            },
+            Op::Pow(x, y) => match (*x.clone(), *y.clone()) {
+                (x, y) => Err(x.apply().expect_err("").powf(y.apply().expect_err(""))),
+            },
+            Op::Root(x) => match *x.clone() {
+                x => Err(x.apply().expect_err("").sqrt()),
+            },
+            Op::Log(x, y) => match (*x.clone(), *y.clone()) {
+                (x, y) => Err(y.apply().expect_err("").log(x.apply().expect_err(""))),
+            },
+        }
+    }
+}
 
 pub trait Parse {
     fn parse(self) -> Result<Vec<Token>, String>;
@@ -25,10 +66,10 @@ fn sanitase(mut data: Vec<Token>) -> Result<Vec<Token>, String> {
                 if !(data[i - 2].get_type() == TokenType::Op
                     && data[i - 2].as_op().unwrap().is_forward())
                 {
-                    data.insert(i, Token::Op(Op::Mul));
+                    data.insert(i, Token::Op(OpType::Mul));
                 }
             } else {
-                data.insert(i, Token::Op(Op::Mul));
+                data.insert(i, Token::Op(OpType::Mul));
             }
         }
         prev_type = type_;
@@ -38,7 +79,7 @@ fn sanitase(mut data: Vec<Token>) -> Result<Vec<Token>, String> {
     Ok(data)
 }
 
-fn order(mut data: Vec<Token>) -> Vec<Token> {
+fn order(mut data: Vec<Token>) -> Vec<Op> {
     todo!()
 }
 

@@ -1,7 +1,7 @@
 use std::fmt::{Debug, Write};
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum Op {
+pub enum OpType {
     Mul,
     Div,
     Add,
@@ -11,30 +11,30 @@ pub enum Op {
     Log,
 }
 
-impl Op {
+impl OpType {
     pub fn apply(&self, x: Option<f64>, y: Option<f64>, z: Option<f64>) -> Option<Token> {
         // let data = data.iter().flatten().cloned().collect::<Vec<f64>>();
         // println!("{x:?} {y:?} {z:?}");
         match self {
-            Op::Mul => Some(Token::Number(x? * y?)),
-            Op::Div => Some(Token::Number(x? / y?)),
-            Op::Add => Some(Token::Number(x? + y?)),
-            Op::Sub => Some(Token::Number(x? - y?)),
-            Op::Pow => Some(Token::Number(x?.powf(y?))),
-            Op::Root => Some(Token::Number(y?.sqrt())),
-            Op::Log => Some(Token::Number(z?.log(y?))),
+            OpType::Mul => Some(Token::Number(x? * y?)),
+            OpType::Div => Some(Token::Number(x? / y?)),
+            OpType::Add => Some(Token::Number(x? + y?)),
+            OpType::Sub => Some(Token::Number(x? - y?)),
+            OpType::Pow => Some(Token::Number(x?.powf(y?))),
+            OpType::Root => Some(Token::Number(y?.sqrt())),
+            OpType::Log => Some(Token::Number(z?.log(y?))),
         }
     }
 
     pub fn is_forward(&self) -> bool {
         match self {
-            Op::Mul => false,
-            Op::Div => false,
-            Op::Add => false,
-            Op::Sub => false,
-            Op::Pow => false,
-            Op::Root => true,
-            Op::Log => true,
+            OpType::Mul => false,
+            OpType::Div => false,
+            OpType::Add => false,
+            OpType::Sub => false,
+            OpType::Pow => false,
+            OpType::Root => true,
+            OpType::Log => true,
         }
     }
 }
@@ -59,7 +59,7 @@ pub enum TokenType {
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     Number(f64),
-    Op(Op),
+    Op(OpType),
     Unit(Unit),
     OpenP,
     CloseP,
@@ -72,10 +72,12 @@ impl Token {
             Token::Number(_) => TokenType::Number,
             Token::Op(_) => TokenType::Op,
             Token::Unit(_) => TokenType::Unit,
+            Token::OpenP => TokenType::OpenP,
+            Token::CloseP => TokenType::CloseP,
             Token::Invalid => TokenType::Invalid,
         }
     }
-    pub fn as_op(&self) -> Option<Op> {
+    pub fn as_op(&self) -> Option<OpType> {
         let Token::Op(x) = self else { return None };
         Some(x.clone())
     }
@@ -167,13 +169,13 @@ fn _tokenize(x: &str) -> Token {
     let x = x.to_lowercase();
     // println!("x: {x:?}");
     match x.as_str() {
-        "*" => Token::Op(Op::Mul),
-        "/" => Token::Op(Op::Div),
-        "+" => Token::Op(Op::Add),
-        "-" => Token::Op(Op::Sub),
-        "^" => Token::Op(Op::Pow),
-        "sqrt" | "rt" | "root" => Token::Op(Op::Root),
-        "log" | "lg" => Token::Op(Op::Log),
+        "*" => Token::Op(OpType::Mul),
+        "/" => Token::Op(OpType::Div),
+        "+" => Token::Op(OpType::Add),
+        "-" => Token::Op(OpType::Sub),
+        "^" => Token::Op(OpType::Pow),
+        "sqrt" | "rt" | "root" => Token::Op(OpType::Root),
+        "log" | "lg" => Token::Op(OpType::Log),
         "(" => Token::OpenP,
         ")" => Token::CloseP,
 
@@ -207,13 +209,13 @@ mod test {
 
     #[test]
     fn test_priv_tokenize() {
-        assert_eq!(_tokenize("*"), Token::Op(Op::Mul));
-        assert_eq!(_tokenize("/"), Token::Op(Op::Div));
-        assert_eq!(_tokenize("+"), Token::Op(Op::Add));
-        assert_eq!(_tokenize("-"), Token::Op(Op::Sub));
-        assert_eq!(_tokenize("^"), Token::Op(Op::Pow));
-        assert_eq!(_tokenize("sqrt"), Token::Op(Op::Root));
-        assert_eq!(_tokenize("log"), Token::Op(Op::Log));
+        assert_eq!(_tokenize("*"), Token::Op(OpType::Mul));
+        assert_eq!(_tokenize("/"), Token::Op(OpType::Div));
+        assert_eq!(_tokenize("+"), Token::Op(OpType::Add));
+        assert_eq!(_tokenize("-"), Token::Op(OpType::Sub));
+        assert_eq!(_tokenize("^"), Token::Op(OpType::Pow));
+        assert_eq!(_tokenize("sqrt"), Token::Op(OpType::Root));
+        assert_eq!(_tokenize("log"), Token::Op(OpType::Log));
         assert_eq!(_tokenize("123"), Token::Number(123.0));
         assert_eq!(_tokenize("123.0"), Token::Number(123.0));
         assert_eq!(_tokenize(".01"), Token::Number(0.01));
@@ -223,7 +225,11 @@ mod test {
     fn test_tokenize() {
         assert_eq!(
             tokenize("1/123"),
-            vec![Token::Number(1.0), Token::Op(Op::Div), Token::Number(123.0)]
+            vec![
+                Token::Number(1.0),
+                Token::Op(OpType::Div),
+                Token::Number(123.0)
+            ]
         );
         assert_eq!(
             tokenize("1 123"),
@@ -231,15 +237,19 @@ mod test {
         );
         assert_eq!(
             tokenize("1*123"),
-            vec![Token::Number(1.0), Token::Op(Op::Mul), Token::Number(123.0)]
+            vec![
+                Token::Number(1.0),
+                Token::Op(OpType::Mul),
+                Token::Number(123.0)
+            ]
         );
         assert_eq!(
             tokenize("1*123/321"),
             vec![
                 Token::Number(1.0),
-                Token::Op(Op::Mul),
+                Token::Op(OpType::Mul),
                 Token::Number(123.0),
-                Token::Op(Op::Div),
+                Token::Op(OpType::Div),
                 Token::Number(321.0)
             ]
         );
@@ -248,7 +258,7 @@ mod test {
             vec![
                 Token::Invalid,
                 Token::Number(1.0),
-                Token::Op(Op::Mul),
+                Token::Op(OpType::Mul),
                 Token::Number(123.0)
             ]
         );
