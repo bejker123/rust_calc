@@ -38,6 +38,10 @@ fn sanitase(mut data: Vec<Token>) -> Result<Vec<Token>, String> {
     Ok(data)
 }
 
+fn order(mut data: Vec<Token>) -> Vec<Token> {
+    todo!()
+}
+
 pub fn parse(data: Vec<Token>) -> Result<Vec<Token>, String> {
     if data.len() == 1 {
         return Ok(data);
@@ -54,7 +58,7 @@ pub fn parse(data: Vec<Token>) -> Result<Vec<Token>, String> {
                 data.get(idx + 1).unwrap_or(&Token::Invalid).clone().as_nr(),
                 data.get(idx + 2).unwrap_or(&Token::Invalid).clone().as_nr(),
             );
-            ret.push(x.clone());
+            ret.push(x.clone().ok_or("Applying operation failed".to_string())?);
             // println!("After _parse: {x:?}");
             if i.as_op().unwrap().is_forward() {
                 idx += 3;

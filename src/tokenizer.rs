@@ -12,17 +12,17 @@ pub enum Op {
 }
 
 impl Op {
-    pub fn apply(&self, x: Option<f64>, y: Option<f64>, z: Option<f64>) -> Token {
+    pub fn apply(&self, x: Option<f64>, y: Option<f64>, z: Option<f64>) -> Option<Token> {
         // let data = data.iter().flatten().cloned().collect::<Vec<f64>>();
         // println!("{x:?} {y:?} {z:?}");
         match self {
-            Op::Mul => Token::Number(x.unwrap() * y.unwrap()),
-            Op::Div => Token::Number(x.unwrap() / y.unwrap()),
-            Op::Add => Token::Number(x.unwrap() + y.unwrap()),
-            Op::Sub => Token::Number(x.unwrap() - y.unwrap()),
-            Op::Pow => Token::Number(x.unwrap().powf(y.unwrap())),
-            Op::Root => Token::Number(y.unwrap().sqrt()),
-            Op::Log => Token::Number(z.unwrap().log(y.unwrap())),
+            Op::Mul => Some(Token::Number(x? * y?)),
+            Op::Div => Some(Token::Number(x? / y?)),
+            Op::Add => Some(Token::Number(x? + y?)),
+            Op::Sub => Some(Token::Number(x? - y?)),
+            Op::Pow => Some(Token::Number(x?.powf(y?))),
+            Op::Root => Some(Token::Number(y?.sqrt())),
+            Op::Log => Some(Token::Number(z?.log(y?))),
         }
     }
 
@@ -51,6 +51,8 @@ pub enum TokenType {
     Number,
     Op,
     Unit,
+    OpenP,
+    CloseP,
     Invalid,
 }
 
@@ -59,6 +61,8 @@ pub enum Token {
     Number(f64),
     Op(Op),
     Unit(Unit),
+    OpenP,
+    CloseP,
     Invalid,
 }
 
@@ -170,6 +174,8 @@ fn _tokenize(x: &str) -> Token {
         "^" => Token::Op(Op::Pow),
         "sqrt" | "rt" | "root" => Token::Op(Op::Root),
         "log" | "lg" => Token::Op(Op::Log),
+        "(" => Token::OpenP,
+        ")" => Token::CloseP,
 
         y => {
             if let Ok(o) = y.parse::<f64>() {
