@@ -1,6 +1,6 @@
 use crate::{DbgDisplay, OpType, Token, TokenType};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Op {
     Mul(Box<Op>, Box<Op>),
     Div(Box<Op>, Box<Op>),
@@ -197,4 +197,61 @@ pub fn parse(data: Vec<Op>) -> f64 {
     // Ok(ret)
     // Ok(vec![])
     ret
+}
+
+mod test {
+    use super::parse_to_operations;
+    use super::{Op, OpType, Token};
+
+    #[test]
+    fn test_parse_to_operations() {
+        assert_eq!(
+            parse_to_operations(vec![
+                Token::Number(2.0),
+                Token::Op(OpType::Mul),
+                Token::Number(2.0),
+            ]),
+            vec![Op::Mul(
+                Box::new(Op::Number(2.0)),
+                Box::new(Op::Number(2.0))
+            )]
+        );
+        assert_eq!(
+            parse_to_operations(vec![
+                Token::Number(2.0),
+                Token::Op(OpType::Div),
+                Token::Number(2.0),
+            ]),
+            vec![Op::Div(
+                Box::new(Op::Number(2.0)),
+                Box::new(Op::Number(2.0))
+            )]
+        );
+        assert_eq!(
+            parse_to_operations(vec![
+                Token::Number(2.0),
+                Token::Op(OpType::Add),
+                Token::Number(2.0),
+            ]),
+            vec![Op::Add(
+                Box::new(Op::Number(2.0)),
+                Box::new(Op::Number(2.0))
+            )]
+        );
+        assert_eq!(
+            parse_to_operations(vec![
+                Token::Number(2.0),
+                Token::Op(OpType::Sub),
+                Token::Number(2.0),
+            ]),
+            vec![Op::Sub(
+                Box::new(Op::Number(2.0)),
+                Box::new(Op::Number(2.0))
+            )]
+        );
+        // assert_eq!(
+        //     parse_to_operations(vec![Token::Op(OpType::Root), Token::Number(2.0),]),
+        //     vec![Op::Root(Box::new(Op::Number(2.0)))]
+        // );
+    }
 }
