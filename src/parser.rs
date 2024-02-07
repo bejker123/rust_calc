@@ -14,6 +14,7 @@ pub enum Op {
 
 impl Op {
     pub fn apply(&self) -> Result<Op, f64> {
+        println!("{self:?}");
         match self {
             Op::Number(x) => Err(x.clone()),
             Op::Mul(x, y) => match (*x.clone(), *y.clone()) {
@@ -39,15 +40,28 @@ impl Op {
             },
         }
     }
+    pub fn from(tk: Token, op1: Option<Op>, op2: Option<Op>) -> Op {
+        match tk {
+            Token::Number(x) => Op::Number(x),
+            Token::Op(OpType::Mul) => Op::Mul(Box::new(op1.unwrap()), Box::new(op2.unwrap())),
+            Token::Op(OpType::Div) => Op::Div(Box::new(op1.unwrap()), Box::new(op2.unwrap())),
+            Token::Op(OpType::Add) => Op::Add(Box::new(op1.unwrap()), Box::new(op2.unwrap())),
+            Token::Op(OpType::Sub) => Op::Sub(Box::new(op1.unwrap()), Box::new(op2.unwrap())),
+            Token::Op(OpType::Pow) => Op::Pow(Box::new(op1.unwrap()), Box::new(op2.unwrap())),
+            Token::Op(OpType::Log) => Op::Log(Box::new(op1.unwrap()), Box::new(op2.unwrap())),
+            Token::Op(OpType::Root) => Op::Root(Box::new(op1.unwrap())),
+            _ => unreachable!(),
+        }
+    }
 }
 
 pub trait Parse {
-    fn parse(self) -> Result<Vec<Token>, String>;
+    fn parse(self) -> Result<f64, String>;
 }
 
 impl Parse for Vec<Token> {
-    fn parse(self) -> Result<Vec<Token>, String> {
-        parse(self)
+    fn parse(self) -> Result<f64, String> {
+        Ok(parse(parse_to_operations(sanitase(self)?)))
     }
 }
 
@@ -79,47 +93,108 @@ fn sanitase(mut data: Vec<Token>) -> Result<Vec<Token>, String> {
     Ok(data)
 }
 
-fn order(mut data: Vec<Token>) -> Vec<Op> {
-    todo!()
+macro_rules! next_token {
+    ($data: expr,$idx: expr,$i:expr) => {
+        Box::new(Op::Number($data.get($idx + $i).unwrap().as_nr().unwrap()))
+    };
 }
 
-pub fn parse(data: Vec<Token>) -> Result<Vec<Token>, String> {
+macro_rules! prev_token {
+    ($prev_token: expr) => {
+        Box::new(Op::Number($prev_token.as_nr().unwrap()))
+    };
+}
+
+fn parse_to_operations(data: Vec<Token>) -> Vec<Op> {
     if data.len() == 1 {
-        return Ok(data);
+        return vec![Op::Number(data.first().unwrap().as_nr().unwrap())];
     }
-    let data = sanitase(data)?;
+    let mut ret = Vec::new();
     let mut prev_token = Token::Invalid;
     let mut idx = 0;
-    let mut ret = Vec::new();
+    let mut skip = 0;
+    let mut prev_op = Op::Number(0.0);
     for i in data.iter() {
+        if skip > 0 {
+            skip -= 1;
+            prev_token = i.clone();
+            idx += 1;
+            continue;
+        }
+        // println!("{idx}: {i:?}");
         if i.get_type() == TokenType::Op {
-            // println!("_parse data.len(): {}", data.len());
-            let x = i.as_op().unwrap().apply(
-                prev_token.as_nr(),
-                data.get(idx + 1).unwrap_or(&Token::Invalid).clone().as_nr(),
-                data.get(idx + 2).unwrap_or(&Token::Invalid).clone().as_nr(),
-            );
-            ret.push(x.clone().ok_or("Applying operation failed".to_string())?);
-            // println!("After _parse: {x:?}");
-            if i.as_op().unwrap().is_forward() {
-                idx += 3;
+            let op = i.as_op().unwrap();
+            let prev = if !ret.is_empty() {
+                Box::new(prev_op.clone())
             } else {
-                idx += 2;
+                prev_token!(prev_token)
+            };
+            match op {
+                OpType::Mul => {
+                    skip += 1;
+                    prev_op = Op::Mul(prev, next_token!(data, idx, 1));
+                }
+                OpType::Div => {
+                    skip += 1;
+                    prev_op = Op::Div(prev, next_token!(data, idx, 1));
+                }
+                OpType::Add => {
+                    skip += 1;
+                    prev_op = Op::Add(prev, next_token!(data, idx, 1));
+                }
+                OpType::Sub => {
+                    skip += 1;
+                    prev_op = Op::Sub(prev, next_token!(data, idx, 1));
+                }
+                OpType::Pow => {
+                    skip += 1;
+                    prev_op = Op::Pow(prev, next_token!(data, idx, 1));
+                }
+                OpType::Log => {
+                    todo!();
+                    skip += 2;
+                    ret.push(Op::Log(
+                        next_token!(data, idx, 1),
+                        next_token!(data, idx, 2),
+                    ))
+                }
+                OpType::Root => {
+                    todo!();
+                    skip += 1;
+                    ret.push(Op::Root(next_token!(data, idx, 1)))
+                }
+                _ => todo!(),
             }
-            break;
+            ret.push(prev_op.clone());
         }
         prev_token = i.clone();
         idx += 1;
     }
-
-    ret.extend_from_slice(&data[idx..]);
-    if ret.len() != 1 {
-        return parse(ret);
-    }
-
-    Ok(ret)
+    ret
 }
 
-// fn _parse(op: Op, data: Vec<Token>) -> Token {
-//     op.apply(data.iter().map(|x| x.as_nr()).collect())
-// }
+pub fn parse(data: Vec<Op>) -> f64 {
+    if data.is_empty() {
+        return 0.0;
+    }
+    // let data = sanitase(data)?;
+    // let mut idx = 0;
+    let mut ret = 0.0;
+    for i in data.iter() {
+        match i.apply() {
+            Ok(op) => {
+                op.apply();
+            }
+            Err(x) => ret = x,
+        }
+    }
+
+    // ret.extend_from_slice(&data[idx..]);
+    // if ret.len() != 1 {
+    //     return parse(ret);
+    // }
+
+    // Ok(ret)
+    // Ok(vec![])
+    ret
+}

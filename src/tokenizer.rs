@@ -12,20 +12,6 @@ pub enum OpType {
 }
 
 impl OpType {
-    pub fn apply(&self, x: Option<f64>, y: Option<f64>, z: Option<f64>) -> Option<Token> {
-        // let data = data.iter().flatten().cloned().collect::<Vec<f64>>();
-        // println!("{x:?} {y:?} {z:?}");
-        match self {
-            OpType::Mul => Some(Token::Number(x? * y?)),
-            OpType::Div => Some(Token::Number(x? / y?)),
-            OpType::Add => Some(Token::Number(x? + y?)),
-            OpType::Sub => Some(Token::Number(x? - y?)),
-            OpType::Pow => Some(Token::Number(x?.powf(y?))),
-            OpType::Root => Some(Token::Number(y?.sqrt())),
-            OpType::Log => Some(Token::Number(z?.log(y?))),
-        }
-    }
-
     pub fn is_forward(&self) -> bool {
         match self {
             OpType::Mul => false,
