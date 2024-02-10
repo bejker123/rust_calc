@@ -67,7 +67,7 @@ fn parse_to_operations(data: Vec<Token>) -> Result<Op, String> {
     if data.contains(&Token::Invalid) {
         return Err(String::from("Stream contains invalid tokens"));
     }
-    if data.len() >= 1 {
+    if data.len() <= 1 {
         return Ok(Op::Number(
             data.first()
                 .ok_or("Stream empty")?
