@@ -6,7 +6,7 @@ pub trait Parse {
 
 impl Parse for Vec<Token> {
     fn parse(self) -> Result<Rational, String> {
-        Ok(parse(parse_to_operations(order(sanitase(self)?))?))
+        Ok(parse(parse_to_operations(sanitase(self)?)?))
     }
 }
 
@@ -42,39 +42,6 @@ fn sanitase(mut data: Vec<Token>) -> Result<Vec<Token>, String> {
 
     // println!("After sanitase:\n{}", data.dbg().unwrap());
     Ok(data)
-}
-
-fn order(mut data: Vec<Token>) -> Vec<Token> {
-    if data.len() <= 1 {
-        return data;
-    }
-
-    // println!("Before order:\n\t{:?}", data);
-    // let mut last_op: Option<OpType> = None;
-    // let mut last_op_idx: Option<usize> = None;
-    // let mut idx = 0;
-    // for i in data.clone().into_iter() {
-    //     match i {
-    //         Token::Op(curr_op) => {
-    //             match last_op {
-    //                 Some(last_op) => {
-    //                     if curr_op.get_order() > last_op.get_order() {
-    //                         data.swap(idx, last_op_idx.unwrap());
-    //                         data.swap(idx - 1, idx - 3);
-    //                         data.swap(idx - 1, idx + 1);
-    //                     }
-    //                 }
-    //                 None => {}
-    //             };
-    //             last_op = Some(curr_op.clone());
-    //             last_op_idx = Some(idx);
-    //         }
-    //         _ => {}
-    //     }
-    //     idx += 1;
-    // }
-    // println!("after order:\n\t{:?}", data);
-    return data;
 }
 
 macro_rules! next_token {
