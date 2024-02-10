@@ -1,5 +1,7 @@
 use std::fmt::{Debug, Write};
 
+use crate::Rational;
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum OpType {
     Mul,
@@ -23,20 +25,27 @@ impl OpType {
             OpType::Log => true,
         }
     }
+    pub fn get_order(&self) -> u8 {
+        match self {
+            OpType::Pow | OpType::Root | OpType::Log => 3,
+            OpType::Mul | OpType::Div => 2,
+            OpType::Add | OpType::Sub => 1,
+        }
+    }
 }
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum Unit {
-    Kilometer,
-    Meter,
-    Milimeter,
-}
+// #[derive(Debug, PartialEq, Clone)]
+// pub enum Unit {
+//     Kilometer,
+//     Meter,
+//     Milimeter,
+// }
 
 #[derive(Debug, PartialEq)]
 pub enum TokenType {
     Number,
     Op,
-    Unit,
+    // Unit,
     OpenP,
     CloseP,
     Invalid,
@@ -44,9 +53,9 @@ pub enum TokenType {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
-    Number(f64),
+    Number(Rational),
     Op(OpType),
-    Unit(Unit),
+    // Unit(Unit),
     OpenP,
     CloseP,
     Invalid,
@@ -57,7 +66,7 @@ impl Token {
         match self {
             Token::Number(_) => TokenType::Number,
             Token::Op(_) => TokenType::Op,
-            Token::Unit(_) => TokenType::Unit,
+            // Token::Unit(_) => TokenType::Unit,
             Token::OpenP => TokenType::OpenP,
             Token::CloseP => TokenType::CloseP,
             Token::Invalid => TokenType::Invalid,
@@ -67,7 +76,7 @@ impl Token {
         let Token::Op(x) = self else { return None };
         Some(x.clone())
     }
-    pub fn as_nr(&self) -> Option<f64> {
+    pub fn as_nr(&self) -> Option<Rational> {
         if let Token::Number(x) = self {
             return Some(x.clone());
         }
@@ -167,7 +176,7 @@ fn _tokenize(x: &str) -> Token {
 
         y => {
             if let Ok(o) = y.parse::<f64>() {
-                Token::Number(o)
+                Token::Number(Rational::new(o, 1.0.into()))
             } else {
                 Token::Invalid
             }
@@ -202,9 +211,9 @@ mod test {
         assert_eq!(_tokenize("^"), Token::Op(OpType::Pow));
         assert_eq!(_tokenize("sqrt"), Token::Op(OpType::Root));
         assert_eq!(_tokenize("log"), Token::Op(OpType::Log));
-        assert_eq!(_tokenize("123"), Token::Number(123.0));
-        assert_eq!(_tokenize("123.0"), Token::Number(123.0));
-        assert_eq!(_tokenize(".01"), Token::Number(0.01));
+        assert_eq!(_tokenize("123"), Token::Number(123.0.into()));
+        assert_eq!(_tokenize("123.0"), Token::Number(123.0.into()));
+        assert_eq!(_tokenize(".01"), Token::Number(Rational::new(0.01, 1.0)));
     }
 
     #[test]
@@ -212,40 +221,40 @@ mod test {
         assert_eq!(
             tokenize("1/123"),
             vec![
-                Token::Number(1.0),
+                Token::Number(1.0.into()),
                 Token::Op(OpType::Div),
-                Token::Number(123.0)
+                Token::Number(123.0.into())
             ]
         );
         assert_eq!(
             tokenize("1 123"),
-            vec![Token::Number(1.0), Token::Number(123.0)]
+            vec![Token::Number(1.0.into()), Token::Number(123.0.into())]
         );
         assert_eq!(
             tokenize("1*123"),
             vec![
-                Token::Number(1.0),
+                Token::Number(1.0.into()),
                 Token::Op(OpType::Mul),
-                Token::Number(123.0)
+                Token::Number(123.0.into())
             ]
         );
         assert_eq!(
             tokenize("1*123/321"),
             vec![
-                Token::Number(1.0),
+                Token::Number(1.0.into()),
                 Token::Op(OpType::Mul),
-                Token::Number(123.0),
+                Token::Number(123.0.into()),
                 Token::Op(OpType::Div),
-                Token::Number(321.0)
+                Token::Number(321.0.into())
             ]
         );
         assert_eq!(
             tokenize("a 1*123"),
             vec![
                 Token::Invalid,
-                Token::Number(1.0),
+                Token::Number(1.0.into()),
                 Token::Op(OpType::Mul),
-                Token::Number(123.0)
+                Token::Number(123.0.into())
             ]
         );
     }

@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, PartialEq, Debug)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Rational {
     p: f64, //numerator
     q: f64, //denominator
@@ -22,6 +22,14 @@ fn lcm(x: f64, y: f64) -> f64 {
 impl Rational {
     pub fn new(a: f64, b: f64) -> Self {
         Self { p: a, q: b }
+    }
+
+    pub fn zero() -> Self {
+        Self { p: 0.0, q: 1.0 }
+    }
+
+    pub fn one() -> Self {
+        Self { p: 1.0, q: 1.0 }
     }
 
     pub fn reduce(&self) -> Self {
@@ -64,13 +72,63 @@ impl Rational {
             q: self.q.sqrt(),
         }
     }
+
+    pub fn powf(&self, x: f64) -> Self {
+        Self {
+            p: self.p.powf(x),
+            q: self.q.powf(x),
+        }
+    }
+
+    pub fn pow(&self, x: Rational) -> Self {
+        let cp = self.powf(x.to_float());
+        Self { p: cp.p, q: cp.q }
+    }
+
+    pub fn log(&self, x: Rational) -> Self {
+        let x = x.to_float();
+        Self {
+            p: self.p.log(x) - self.q.log(x),
+            q: 1.0,
+        }
+    }
 }
 
+impl std::fmt::Debug for Rational {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // f.write_fmt(format_args!("{}", self.to_float()))
+        let (p, q) = self.reduce().into();
+        if q == 1.0 {
+            f.write_fmt(format_args!("{}", p))
+        } else {
+            f.write_fmt(format_args!("{}/{}", p, q))
+        }
+    }
+}
 impl std::fmt::Display for Rational {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // f.write_fmt(format_args!("{}", self.to_float()))
         let (p, q) = self.reduce().into();
-        f.write_fmt(format_args!("{}/{}", p, q))
+        if q == 1.0 {
+            f.write_fmt(format_args!("{}", p))
+        } else {
+            f.write_fmt(format_args!("{}/{}", p, q))
+        }
+    }
+}
+
+impl From<f64> for Rational {
+    fn from(p: f64) -> Rational {
+        Rational { p, q: 1.0 }.reduce()
+    }
+}
+
+impl From<f32> for Rational {
+    fn from(p: f32) -> Rational {
+        Rational {
+            p: f64::from(p),
+            q: 1.0,
+        }
     }
 }
 
