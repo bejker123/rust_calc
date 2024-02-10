@@ -42,61 +42,30 @@ impl Op {
         out
     }
 
-    // fn as_mul(&self) -> Self{
-    //     match self{
-    //         Op::Mul(_,_) => *self,
-    //         Op::Div(x,y) => Op::Mul(*x,*y),
-    //         Op::Add(x,y) => Op::Mul(*x,*y),
-    //         Op::Sub(x,y) => Op::Mul(*x,*y),
-    //         Op::Pow(x,y) => Op::Mul(*x,*y),
-    //         _=> unreachable!()
-    //     }
-    // }
-    //
-    // fn as_div(&self) -> Self{
-    //     match self{
-    //         Op::Mul(x,y) => Op::Div(*x,*y),
-    //         Op::Div(_,_) => *self,
-    //         Op::Add(x,y) => Op::Div(*x,*y),
-    //         Op::Sub(x,y) => Op::Div(*x,*y),
-    //         Op::Pow(x,y) => Op::Div(*x,*y),
-    //         _=> unreachable!()
-    //     }
-    // }
-    //
-    // fn as_add(&self) -> Self{
-    //     match self{
-    //         Op::Mul(x,y) => Op::Add(*x,*y),
-    //         Op::Div(x,y) => Op::Add(*x,*y),
-    //         Op::Add(_,_) => *self,
-    //         Op::Sub(x,y) => Op::Add(*x,*y),
-    //         Op::Pow(x,y) => Op::Add(*x,*y),
-    //         _=> unreachable!()
-    //     }
-    // }
-    //
-    // fn as_(&self) -> Self{
-    //     match self{
-    //         Op::Mul(x,y) => Op::Add(*x,*y),
-    //         Op::Div(x,y) => Op::Add(*x,*y),
-    //         Op::Add(_,_) => *self,
-    //         Op::Sub(x,y) => Op::Add(*x,*y),
-    //         Op::Pow(x,y) => Op::Add(*x,*y),
-    //         _=> unreachable!()
-    //     }
-    // }
-
-    // pub fn swap(&mut self, other: &mut Op) -> &Op {
-    //     match (self, other) {
-    //         (Op::Number(x), Op::Number(y)) => {
-    //             *self = Op::Number(*y);
-    //             *other = Op::Number(*x)
-    //         }
-    //         (Op::Mul(x, y),)
-    //     }
-    //
-    //     other
-    // }
+    pub fn get_y(&self) -> Option<Box<Op>> {
+        match self.clone() {
+            Op::Pow(_, y)
+            | Op::Log(_, y)
+            | Op::Mul(_, y)
+            | Op::Div(_, y)
+            | Op::Add(_, y)
+            | Op::Sub(_, y) => Some(y),
+            _ => None,
+        }
+    }
+    pub fn change_y(&mut self, new_y: Box<Op>) {
+        match self {
+            Op::Pow(_, ref mut y)
+            | Op::Log(_, ref mut y)
+            | Op::Mul(_, ref mut y)
+            | Op::Div(_, ref mut y)
+            | Op::Add(_, ref mut y)
+            | Op::Sub(_, ref mut y) => {
+                *y = new_y;
+            }
+            _ => {}
+        }
+    }
 
     pub fn get_order(&self) -> u8 {
         match self {
