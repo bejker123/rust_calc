@@ -224,7 +224,8 @@ mod test {
                 Token::Number(2.0.into()),
                 Token::Op(OpType::Mul),
                 Token::Number(2.0.into()),
-            ]),
+            ])
+            .unwrap(),
             vec![Op::Mul(
                 Box::new(Op::Number(2.0.into())),
                 Box::new(Op::Number(2.0.into()))
@@ -235,7 +236,8 @@ mod test {
                 Token::Number(2.0.into()),
                 Token::Op(OpType::Div),
                 Token::Number(2.0.into()),
-            ]),
+            ])
+            .unwrap(),
             vec![Op::Div(
                 Box::new(Op::Number(2.0.into())),
                 Box::new(Op::Number(2.0.into()))
@@ -246,7 +248,8 @@ mod test {
                 Token::Number(2.0.into()),
                 Token::Op(OpType::Add),
                 Token::Number(2.0.into()),
-            ]),
+            ])
+            .unwrap(),
             vec![Op::Add(
                 Box::new(Op::Number(2.0.into())),
                 Box::new(Op::Number(2.0.into()))
@@ -257,7 +260,8 @@ mod test {
                 Token::Number(2.0.into()),
                 Token::Op(OpType::Sub),
                 Token::Number(2.0.into()),
-            ]),
+            ])
+            .unwrap(),
             vec![Op::Sub(
                 Box::new(Op::Number(2.0.into())),
                 Box::new(Op::Number(2.0.into()))
