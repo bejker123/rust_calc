@@ -92,7 +92,7 @@ impl DbgDisplay for Vec<Token> {
     fn dbg(&self) -> Result<String, std::fmt::Error> {
         let mut ret = String::new();
         for i in self {
-            write!(ret, "{i:?}\n")?;
+            writeln!(ret, "{i:?}")?;
         }
         Ok(ret)
     }
@@ -102,7 +102,7 @@ impl DbgDisplay for Vec<(String, Token)> {
     fn dbg(&self) -> Result<String, std::fmt::Error> {
         let mut ret = String::new();
         for i in self {
-            write!(ret, "{} {:?}\n", i.0, i.1)?;
+            writeln!(ret, "{} {:?}", i.0, i.1)?;
         }
         Ok(ret)
     }

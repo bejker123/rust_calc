@@ -13,30 +13,16 @@ pub enum Op {
 }
 
 impl Op {
-    pub fn apply(&self) -> Result<Op, Rational> {
+    pub fn apply(&self) -> Rational {
         let out = match self {
-            Op::Number(x) => Err(x.clone()),
-            Op::Mul(x, y) => match (*x.clone(), *y.clone()) {
-                (x, y) => Err(x.apply().expect_err("") * y.apply().expect_err("")),
-            },
-            Op::Div(x, y) => match (*x.clone(), *y.clone()) {
-                (x, y) => Err(x.apply().expect_err("") / y.apply().expect_err("")),
-            },
-            Op::Add(x, y) => match (*x.clone(), *y.clone()) {
-                (x, y) => Err(x.apply().expect_err("") + y.apply().expect_err("")),
-            },
-            Op::Sub(x, y) => match (*x.clone(), *y.clone()) {
-                (x, y) => Err(x.apply().expect_err("") - y.apply().expect_err("")),
-            },
-            Op::Pow(x, y) => match (*x.clone(), *y.clone()) {
-                (x, y) => Err(x.apply().expect_err("").pow(y.apply().expect_err(""))),
-            },
-            Op::Root(x) => match *x.clone() {
-                x => Err(x.apply().expect_err("").sqrt()),
-            },
-            Op::Log(x, y) => match (*x.clone(), *y.clone()) {
-                (x, y) => Err(y.apply().expect_err("").log(x.apply().expect_err(""))),
-            },
+            Op::Number(x) => *x,
+            Op::Mul(x, y) => x.apply() * y.apply(),
+            Op::Div(x, y) => x.apply() / y.apply(),
+            Op::Add(x, y) => x.apply() + y.apply(),
+            Op::Sub(x, y) => x.apply() - y.apply(),
+            Op::Pow(x, y) => x.apply().pow(y.apply()),
+            Op::Root(x) => x.apply().sqrt(),
+            Op::Log(x, y) => y.apply().log(x.apply()),
         };
         // println!("apply: self: {self:?} out: {out:?}");
         out
