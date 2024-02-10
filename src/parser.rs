@@ -58,11 +58,7 @@ macro_rules! next_token {
 
 macro_rules! prev_token {
     ($prev_token: expr) => {
-        Box::new(Op::Number(
-            $prev_token
-                .as_nr()
-                .ok_or(String::from("Number expected."))?,
-        ))
+        Box::new(Op::Number($prev_token.as_nr().ok_or("Number expected.")?))
     };
 }
 
@@ -71,8 +67,13 @@ fn parse_to_operations(data: Vec<Token>) -> Result<Op, String> {
     if data.contains(&Token::Invalid) {
         return Err(String::from("Stream contains invalid tokens"));
     }
-    if data.len() == 1 {
-        return Ok(Op::Number(data.first().unwrap().as_nr().unwrap()));
+    if data.len() >= 1 {
+        return Ok(Op::Number(
+            data.first()
+                .ok_or("Stream empty")?
+                .as_nr()
+                .ok_or("Failed to parse stream.")?,
+        ));
     }
     let mut prev_token = Token::Invalid;
     let mut skip = 0;
