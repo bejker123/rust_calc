@@ -1,4 +1,4 @@
-use crate::{op::Op, OpType, Rational, Token, TokenType};
+use crate::{op::Op, DbgDisplay, OpType, Rational, Token, TokenType};
 
 pub trait Parse {
     fn parse(self) -> Result<Rational, String>;
@@ -7,6 +7,18 @@ pub trait Parse {
 impl Parse for Vec<Token> {
     fn parse(self) -> Result<Rational, String> {
         Ok(parse_to_operations(sanitase(self)?)?.apply())
+    }
+}
+
+impl Parse for Vec<(String, Token)> {
+    fn parse(self) -> Result<Rational, String> {
+        println!(
+            "{}",
+            self.dbg()
+                .unwrap_or(String::from("Failed to display token stream"))
+        );
+        let out = self.into_iter().map(|x| x.1).collect();
+        Ok(parse_to_operations(sanitase(out)?)?.apply())
     }
 }
 

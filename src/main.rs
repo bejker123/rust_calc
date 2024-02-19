@@ -1,8 +1,5 @@
-use std::io::Write;
-
-use tokenizer::tokenize;
-
 use crate::{parser::Parse, rational::*, tokenizer::*};
+use std::io::Write;
 
 mod op;
 mod parser;
@@ -28,7 +25,7 @@ fn main() {
         let line = line.trim();
 
         // println!("{}", dbg_tokenize(line));
-        let out = tokenize(line).parse();
+        let out = dbg_tokenize(line).parse();
         match out {
             Ok(o) => {
                 println!("={o}");

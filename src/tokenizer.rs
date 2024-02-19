@@ -109,7 +109,7 @@ impl DbgDisplay for Vec<(String, Token)> {
 }
 
 fn split<'a>(mut s: &'a str) -> Vec<&'a str> {
-    let pats = [" ", "*", "/", "+", "-", "^"];
+    let pats = [' ', '*', '/', '+', '-', '^', '(', ')'];
     let mut ret = Vec::new();
     // println!("Splitting: {s:?}");
     loop {
@@ -117,7 +117,7 @@ fn split<'a>(mut s: &'a str) -> Vec<&'a str> {
         for i in pats {
             // println!("Looking for: {i:?} in {s:?}");
             if let Some(x) = s.find(i) {
-                idxs.push((x, i.len()));
+                idxs.push(x);
             }
         }
         // println!("Found: {idxs:?}");
@@ -128,32 +128,32 @@ fn split<'a>(mut s: &'a str) -> Vec<&'a str> {
             }
             break;
         } else {
-            idxs.sort_by_key(|k| k.0);
-            let (x, ln) = idxs.first().unwrap().to_owned();
+            idxs.sort();
+            let x = idxs.first().unwrap().to_owned();
             // println!("Found: {x:?} {ln:?}");
             let to_push = &s[..x];
             if !to_push.is_empty() {
                 ret.push(to_push);
                 // println!("{to_push:?} {s:?}");
             }
-            let delim = &s[x..x + ln];
+            let delim = &s[x..x + 1];
             // println!("delim: {delim:?}");
             if delim != " " {
                 ret.push(delim);
             }
-            s = &s[x + ln..];
+            s = &s[x + 1..];
         }
     }
     ret
 }
 
-pub fn dbg_tokenize(s: &str) -> String {
+pub fn dbg_tokenize(s: &str) -> Vec<(String, Token)> {
     split(s)
         .iter()
         .map(|x| (x.to_string(), _tokenize(x)))
-        .collect::<Vec<(String, Token)>>()
-        .dbg()
-        .unwrap_or("Failed to tokenize".to_string())
+        .collect()
+    // .dbg()
+    // .unwrap_or("Failed to tokenize".to_string())
 }
 
 pub fn tokenize(s: &str) -> Vec<Token> {
