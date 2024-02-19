@@ -129,6 +129,7 @@ impl From<f32> for Rational {
             p: f64::from(p),
             q: 1.0,
         }
+        .reduce()
     }
 }
 
