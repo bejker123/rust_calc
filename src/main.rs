@@ -22,12 +22,13 @@ fn main() {
     //         .expect_err("")
     // );
     let mut term = Term::new();
-    let mut new_line = true;
+    // let mut new_line = true;
+    print!(">");
     loop {
-        if new_line {
-            print!(">");
-            new_line = false;
-        }
+        // if new_line {
+        //     print!(">");
+        //     new_line = false;
+        // }
         std::io::stdout().flush().unwrap();
         let line = match term.next() {
             Ok(o) => o,
@@ -37,8 +38,8 @@ fn main() {
             }
         };
         if let Some(line) = line {
+            print!("\r\n");
             let out = dbg_tokenize(&line).parse();
-            new_line = true;
             match out {
                 Ok(o) => {
                     print!("={o}\r\n");
@@ -47,6 +48,7 @@ fn main() {
                     print!("Error: {e}\r\n");
                 }
             }
+            print!("\r>");
         }
     }
 }
