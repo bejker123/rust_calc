@@ -197,9 +197,43 @@ mod test {
                 Box::new(Op::Number(2.0.into()))
             )
         );
-        // assert_eq!(
-        //     parse_to_operations(vec![Token::Op(OpType::Root), Token::Number(2.0.into()),]),
-        //     vec![Op::Root(Box::new(Op::Number(2.0.into())))]
-        // );
+        assert_eq!(
+            parse_to_operations(vec![
+                Token::Number(2.0.into()),
+                Token::Op(OpType::Sub),
+                Token::Number(2.0.into()),
+                Token::Op(OpType::Div),
+                Token::Number(3.0.into()),
+            ])
+            .unwrap(),
+            Op::Sub(
+                Box::new(Op::Number(2.0.into())),
+                Box::new(Op::Div(
+                    Box::new(Op::Number(2.0.into())),
+                    Box::new(Op::Number(3.0.into()))
+                ))
+            )
+        );
+        assert_eq!(
+            parse_to_operations(vec![
+                Token::Number(2.0.into()),
+                Token::Op(OpType::Mul),
+                Token::Number(2.0.into()),
+                Token::Op(OpType::Div),
+                Token::Number(3.0.into()),
+            ])
+            .unwrap(),
+            Op::Div(
+                Box::new(Op::Mul(
+                    Box::new(Op::Number(2.0.into())),
+                    Box::new(Op::Number(2.0.into()))
+                )),
+                Box::new(Op::Number(3.0.into()))
+            )
+        );
+        assert_eq!(
+            parse_to_operations(vec![Token::Op(OpType::Root), Token::Number(2.0.into())]).unwrap(),
+            Op::Root(Box::new(Op::Number(2.0.into())))
+        );
     }
 }
