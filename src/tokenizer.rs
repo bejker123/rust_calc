@@ -41,7 +41,7 @@ impl Token {
             Token::Invalid => TokenType::Invalid,
         }
     }
-    pub fn as_op(&self) -> Option<OpType> {
+    pub fn as_op_type(&self) -> Option<OpType> {
         let Token::Op(x) = self else { return None };
         Some(x.clone())
     }

@@ -42,7 +42,7 @@ fn sanitase(mut data: Vec<Token>) -> Result<Vec<Token>, String> {
         if (type_ == TokenType::Number || op_append) && prev_type == TokenType::Number {
             if i >= 2 {
                 if !(data[i - 2].get_type() == TokenType::Op
-                    && data[i - 2].as_op().unwrap().is_forward())
+                    && data[i - 2].as_op_type().unwrap().is_forward())
                 {
                     data.insert(i, Token::Op(OpType::Mul));
                 }
@@ -99,20 +99,19 @@ fn parse_to_operations(data: Vec<Token>) -> Result<Op, String> {
             continue;
         }
 
-        if token.get_type() == TokenType::Op {
-            let op = token.as_op().unwrap();
-            let reverse = ret.get_order() < op.get_order() && ret.get_order() != 0;
+        if let Some(op_type) = token.as_op_type() {
+            let reverse = ret.get_order() < op_type.get_order() && ret.get_order() != 0;
 
-            skip += op.get_consume_count();
-            if op.is_forward() {
+            skip += op_type.get_consume_count();
+            if op_type.is_forward() {
                 if reverse {
                     todo!();
                 }
-                if op == OpType::Root {
-                    ret = Op::from_type(op, Some(next_token!(data, i, 1)), None);
+                if op_type == OpType::Root {
+                    ret = Op::from_type(op_type, Some(next_token!(data, i, 1)), None);
                 } else {
                     ret = Op::from_type(
-                        op,
+                        op_type,
                         Some(next_token!(data, i, 1)),
                         Some(next_token!(data, i, 2)),
                     );
@@ -128,14 +127,14 @@ fn parse_to_operations(data: Vec<Token>) -> Result<Op, String> {
                 if reverse {
                     if let Some(y) = prev.get_y() {
                         prev.change_y(Box::new(Op::from_type(
-                            op,
+                            op_type,
                             Some(y),
                             Some(next_token!(data, i, 1)),
                         )));
                         ret = *prev.clone();
                     }
                 } else {
-                    ret = Op::from_type(op, Some(prev), Some(next_token!(data, i, 1)));
+                    ret = Op::from_type(op_type, Some(prev), Some(next_token!(data, i, 1)));
                 }
             }
         }
