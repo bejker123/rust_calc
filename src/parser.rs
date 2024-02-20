@@ -1,4 +1,5 @@
-use crate::{op::Op, DbgDisplay, OpType, Rational, Token, TokenType};
+use crate::op::{Op, OpType};
+use crate::{DbgDisplay, Rational, Token, TokenType};
 
 pub trait Parse {
     fn parse(self) -> Result<Rational, String>;
@@ -98,112 +99,43 @@ fn parse_to_operations(data: Vec<Token>) -> Result<Op, String> {
             continue;
         }
 
-        // println!("{idx}: {i:?}");
         if token.get_type() == TokenType::Op {
             let op = token.as_op().unwrap();
             let reverse = ret.get_order() < op.get_order() && ret.get_order() != 0;
-            match op {
-                OpType::Mul => {
-                    skip += 1;
-                    let mut prev = if ret != Op::Number(Rational::zero()) {
-                        Box::new(ret.clone())
-                    } else {
-                        prev_token!(prev_token)
-                    };
-                    /*
-                    >1+2/3
-                    Add(Number(1), Number(2))
-                    Div(Add(Number(1), Number(2)), Number(3))
-                    =1
-                    >Add(Number(1),Div(Number(2),Number(3))
-                    */
 
-                    if reverse {
-                        if let Some(y) = prev.get_y() {
-                            prev.change_y(Box::new(Op::Mul(y, next_token!(data, i, 1))));
-                            ret = *prev.clone();
-                        }
-                    } else {
-                        ret = Op::Mul(prev, next_token!(data, i, 1));
-                    }
+            skip += op.get_consume_count();
+            if op.is_forward() {
+                if reverse {
+                    todo!();
                 }
-                OpType::Div => {
-                    skip += 1;
-                    let mut prev = if ret != Op::Number(Rational::zero()) {
-                        Box::new(ret.clone())
-                    } else {
-                        prev_token!(prev_token)
-                    };
-                    if reverse {
-                        if let Some(y) = prev.get_y() {
-                            prev.change_y(Box::new(Op::Div(y, next_token!(data, i, 1))));
-                            ret = *prev.clone();
-                        }
-                    } else {
-                        ret = Op::Div(prev, next_token!(data, i, 1));
-                    }
+                if op == OpType::Root {
+                    ret = Op::from_type(op, Some(next_token!(data, i, 1)), None);
+                } else {
+                    ret = Op::from_type(
+                        op,
+                        Some(next_token!(data, i, 1)),
+                        Some(next_token!(data, i, 2)),
+                    );
                 }
-                OpType::Add => {
-                    skip += 1;
-                    let mut prev = if ret != Op::Number(Rational::zero()) {
-                        Box::new(ret.clone())
-                    } else {
-                        prev_token!(prev_token)
-                    };
-                    if reverse {
-                        if let Some(y) = prev.get_y() {
-                            prev.change_y(Box::new(Op::Add(y, next_token!(data, i, 1))));
-                            ret = *prev.clone();
-                        }
-                    } else {
-                        ret = Op::Add(prev, next_token!(data, i, 1));
+            } else {
+                skip -= 1;
+                let mut prev = if ret != Op::Number(Rational::zero()) {
+                    Box::new(ret.clone())
+                } else {
+                    prev_token!(prev_token)
+                };
+
+                if reverse {
+                    if let Some(y) = prev.get_y() {
+                        prev.change_y(Box::new(Op::from_type(
+                            op,
+                            Some(y),
+                            Some(next_token!(data, i, 1)),
+                        )));
+                        ret = *prev.clone();
                     }
-                }
-                OpType::Sub => {
-                    skip += 1;
-                    let mut prev = if ret != Op::Number(Rational::zero()) {
-                        Box::new(ret.clone())
-                    } else {
-                        prev_token!(prev_token)
-                    };
-                    if reverse {
-                        if let Some(y) = prev.get_y() {
-                            prev.change_y(Box::new(Op::Sub(y, next_token!(data, i, 1))));
-                            ret = *prev.clone();
-                        }
-                    } else {
-                        ret = Op::Sub(prev, next_token!(data, i, 1));
-                    }
-                }
-                OpType::Pow => {
-                    skip += 1;
-                    let mut prev = if ret != Op::Number(Rational::zero()) {
-                        Box::new(ret.clone())
-                    } else {
-                        prev_token!(prev_token)
-                    };
-                    if reverse {
-                        if let Some(y) = prev.get_y() {
-                            prev.change_y(Box::new(Op::Pow(y, next_token!(data, i, 1))));
-                            ret = *prev.clone();
-                        }
-                    } else {
-                        ret = Op::Pow(prev, next_token!(data, i, 1));
-                    }
-                }
-                OpType::Log => {
-                    if reverse {
-                        todo!();
-                    }
-                    skip += 2;
-                    ret = Op::Log(next_token!(data, i, 1), next_token!(data, i, 2));
-                }
-                OpType::Root => {
-                    if reverse {
-                        todo!();
-                    }
-                    skip += 1;
-                    ret = Op::Root(next_token!(data, i, 1));
+                } else {
+                    ret = Op::from_type(op, Some(prev), Some(next_token!(data, i, 1)));
                 }
             }
         }

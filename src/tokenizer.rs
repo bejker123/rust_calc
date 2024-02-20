@@ -1,38 +1,7 @@
+use crate::op::OpType;
 use std::fmt::{Debug, Write};
 
 use crate::Rational;
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum OpType {
-    Mul,
-    Div,
-    Add,
-    Sub,
-    Pow,
-    Root,
-    Log,
-}
-
-impl OpType {
-    pub fn is_forward(&self) -> bool {
-        match self {
-            OpType::Mul => false,
-            OpType::Div => false,
-            OpType::Add => false,
-            OpType::Sub => false,
-            OpType::Pow => false,
-            OpType::Root => true,
-            OpType::Log => true,
-        }
-    }
-    pub fn get_order(&self) -> u8 {
-        match self {
-            OpType::Pow | OpType::Root | OpType::Log => 3,
-            OpType::Mul | OpType::Div => 2,
-            OpType::Add | OpType::Sub => 1,
-        }
-    }
-}
 
 // #[derive(Debug, PartialEq, Clone)]
 // pub enum Unit {
