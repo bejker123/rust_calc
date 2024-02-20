@@ -60,8 +60,11 @@ pub trait DbgDisplay {
 impl DbgDisplay for Vec<Token> {
     fn dbg(&self) -> Result<String, std::fmt::Error> {
         let mut ret = String::new();
-        for i in self {
-            writeln!(ret, "{i:?}")?;
+        for i in 0..self.len() {
+            write!(ret, "{:?}\r", self[i])?;
+            if i < self.len() - 1 {
+                write!(ret, "\n")?;
+            }
         }
         Ok(ret)
     }
@@ -70,8 +73,11 @@ impl DbgDisplay for Vec<Token> {
 impl DbgDisplay for Vec<(String, Token)> {
     fn dbg(&self) -> Result<String, std::fmt::Error> {
         let mut ret = String::new();
-        for i in self {
-            writeln!(ret, "{} {:?}", i.0, i.1)?;
+        for i in 0..self.len() {
+            write!(ret, "{} {:?}\r", self[i].0, self[i].1)?;
+            if i < self.len() - 1 {
+                write!(ret, "\n")?;
+            }
         }
         Ok(ret)
     }

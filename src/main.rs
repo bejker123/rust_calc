@@ -1,3 +1,5 @@
+use std::io::Write;
+
 use term::Term;
 
 use crate::{parser::Parse, rational::*, tokenizer::*};
@@ -19,24 +21,31 @@ fn main() {
     //         .apply()
     //         .expect_err("")
     // );
-    let term = Term::new();
+    let mut term = Term::new();
+    let mut new_line = true;
     loop {
-        print!(">");
-        // println!("{}", dbg_tokenize(line));
+        if new_line {
+            print!(">");
+            new_line = false;
+        }
+        std::io::stdout().flush().unwrap();
         let line = match term.next() {
             Ok(o) => o,
             Err(e) => {
-                println!("Error: {e}");
-                continue;
+                print!("Error: {e}\r\n");
+                break;
             }
         };
-        let out = dbg_tokenize(&line).parse();
-        match out {
-            Ok(o) => {
-                println!("={o}");
-            }
-            Err(e) => {
-                println!("Error: {e}");
+        if let Some(line) = line {
+            let out = dbg_tokenize(&line).parse();
+            new_line = true;
+            match out {
+                Ok(o) => {
+                    print!("={o}\r\n");
+                }
+                Err(e) => {
+                    print!("Error: {e}\r\n");
+                }
             }
         }
     }
