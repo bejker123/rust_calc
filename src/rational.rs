@@ -194,6 +194,18 @@ impl std::ops::Neg for Rational {
     }
 }
 
+impl std::ops::Rem for Rational {
+    type Output = Rational;
+
+    fn rem(self, other: Self) -> Self::Output {
+        Self {
+            p: self.to_float() % other.to_float(),
+            q: 1.0,
+        }
+        .reduce()
+    }
+}
+
 mod test {
     #[cfg(test)]
     use super::Rational;

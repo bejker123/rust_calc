@@ -9,6 +9,7 @@ pub enum OpType {
     Pow,
     Root,
     Log,
+    Mod,
 }
 
 impl OpType {
@@ -21,12 +22,13 @@ impl OpType {
             OpType::Pow => false,
             OpType::Root => true,
             OpType::Log => true,
+            OpType::Mod => false,
         }
     }
     pub fn get_order(&self) -> u8 {
         match self {
             OpType::Pow | OpType::Root | OpType::Log => 3,
-            OpType::Mul | OpType::Div => 2,
+            OpType::Mul | OpType::Div | OpType::Mod => 2,
             OpType::Add | OpType::Sub => 1,
         }
     }
@@ -39,6 +41,7 @@ impl OpType {
             OpType::Pow => 2,
             OpType::Root => 1,
             OpType::Log => 2,
+            OpType::Mod => 2,
         }
     }
 }
@@ -51,6 +54,7 @@ pub enum Op {
     Pow(Box<Op>, Box<Op>),
     Root(Box<Op>),
     Log(Box<Op>, Box<Op>),
+    Mod(Box<Op>, Box<Op>),
     Number(Rational),
 }
 
@@ -66,6 +70,7 @@ impl Op {
             OpType::Pow => Op::Pow(x, y),
             OpType::Root => Op::Root(x),
             OpType::Log => Op::Log(x, y),
+            OpType::Mod => Op::Mod(x, y),
         }
     }
 
@@ -79,6 +84,7 @@ impl Op {
             Op::Pow(x, y) => x.apply().pow(y.apply()),
             Op::Root(x) => x.apply().sqrt(),
             Op::Log(x, y) => y.apply().log(x.apply()),
+            Op::Mod(x, y) => x.apply() % y.apply(),
         };
         // println!("apply: self: {self:?} out: {out:?}");
         out
@@ -118,6 +124,7 @@ impl Op {
             Op::Pow(_, _) => Some(OpType::Pow),
             Op::Root(_) => Some(OpType::Root),
             Op::Log(_, _) => Some(OpType::Log),
+            Op::Mod(_, _) => Some(OpType::Mod),
             Op::Number(_) => None,
         }
     }

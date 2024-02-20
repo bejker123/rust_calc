@@ -84,7 +84,7 @@ impl DbgDisplay for Vec<(String, Token)> {
 }
 
 fn split<'a>(mut s: &'a str) -> Vec<&'a str> {
-    let pats = [' ', '*', '/', '+', '-', '^', '(', ')'];
+    let pats = [' ', '*', '/', '+', '-', '^', '(', ')', '%'];
     let mut ret = Vec::new();
     // println!("Splitting: {s:?}");
     loop {
@@ -148,6 +148,7 @@ fn _tokenize(x: &str) -> Token {
         "log" | "lg" => Token::Op(OpType::Log),
         "(" => Token::OpenP,
         ")" => Token::CloseP,
+        "%" => Token::Op(OpType::Mod),
 
         y => {
             if let Ok(o) = y.parse::<f64>() {
