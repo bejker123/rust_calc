@@ -64,6 +64,7 @@ impl Rational {
             p: self.p.abs(),
             q: self.q.abs(),
         }
+        .reduce()
     }
 
     pub fn sqrt(&self) -> Self {
@@ -71,6 +72,7 @@ impl Rational {
             p: self.p.sqrt(),
             q: self.q.sqrt(),
         }
+        .reduce()
     }
 
     pub fn powf(&self, x: f64) -> Self {
@@ -78,11 +80,12 @@ impl Rational {
             p: self.p.powf(x),
             q: self.q.powf(x),
         }
+        .reduce()
     }
 
     pub fn pow(&self, x: Rational) -> Self {
         let cp = self.powf(x.to_float());
-        Self { p: cp.p, q: cp.q }
+        Self { p: cp.p, q: cp.q }.reduce()
     }
 
     pub fn log(&self, x: Rational) -> Self {
@@ -91,6 +94,7 @@ impl Rational {
             p: self.p.log(x) - self.q.log(x),
             q: 1.0,
         }
+        .reduce()
     }
 }
 
@@ -98,6 +102,9 @@ impl std::fmt::Debug for Rational {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // f.write_fmt(format_args!("{}", self.to_float()))
         let (p, q) = self.reduce().into();
+        if q == 0.0 {
+            return f.write_str("undefined");
+        }
         if q == 1.0 {
             f.write_fmt(format_args!("{}", p))
         } else {
@@ -109,6 +116,9 @@ impl std::fmt::Display for Rational {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         // f.write_fmt(format_args!("{}", self.to_float()))
         let (p, q) = self.reduce().into();
+        if q == 0.0 {
+            return f.write_str("undefined");
+        }
         if q == 1.0 {
             f.write_fmt(format_args!("{}", p))
         } else {
