@@ -123,12 +123,10 @@ impl Op {
     }
 
     pub fn get_order(&self) -> u8 {
-        let ret = if let Some(o) = self.get_type() {
+        if let Some(o) = self.get_type() {
             o.get_order()
         } else {
             0
-        };
-        println!("get_order ret: {ret}");
-        ret
+        }
     }
 }
