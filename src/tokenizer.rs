@@ -152,7 +152,7 @@ fn _tokenize(x: &str) -> Token {
 
         y => {
             if let Ok(o) = y.parse::<f64>() {
-                Token::Number(Rational::new(o, 1.0.into()))
+                Token::Number(Rational::from(o))
             } else {
                 Token::Invalid
             }
@@ -189,7 +189,7 @@ mod test {
         assert_eq!(_tokenize("log"), Token::Op(OpType::Log));
         assert_eq!(_tokenize("123"), Token::Number(123.0.into()));
         assert_eq!(_tokenize("123.0"), Token::Number(123.0.into()));
-        assert_eq!(_tokenize(".01"), Token::Number(Rational::new(0.01, 1.0)));
+        assert_eq!(_tokenize(".01"), Token::Number(Rational::new(1.0, 100.0)));
     }
 
     #[test]

@@ -129,17 +129,30 @@ impl std::fmt::Display for Rational {
 
 impl From<f64> for Rational {
     fn from(p: f64) -> Rational {
-        Rational { p, q: 1.0 }.reduce()
+        let mut dec_places = 0;
+        let mut nr = p.abs();
+        nr = nr - (nr as u128) as f64;
+        let mant = f64::powi(10.0, f64::MIN_10_EXP);
+        loop {
+            if nr.abs() <= mant {
+                break;
+            }
+            nr *= 10.0;
+            dec_places += 1;
+            nr = nr - (nr as u128) as f64;
+        }
+
+        Rational {
+            p: p * f64::powi(10.0, dec_places),
+            q: f64::powi(10.0, dec_places),
+        }
+        .reduce()
     }
 }
 
 impl From<f32> for Rational {
     fn from(p: f32) -> Rational {
-        Rational {
-            p: f64::from(p),
-            q: 1.0,
-        }
-        .reduce()
+        Rational::from(f64::from(p))
     }
 }
 
