@@ -133,12 +133,14 @@ impl Term {
         let mut stdin = std::io::stdin();
         stdin.read(&mut buf)?;
         let ret = self.parse_char(buf)?;
-        term_write!(
-            self,
-            "{}\r>{}",
-            termion::clear::CurrentLine,
-            self.line.clone()
-        )?;
+        if !self.line.is_empty() {
+            term_write!(
+                self,
+                "{}\r>{}",
+                termion::clear::CurrentLine,
+                self.line.clone()
+            )?;
+        }
         Ok(ret)
     }
 }
