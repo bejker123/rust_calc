@@ -1,6 +1,7 @@
 use std::fmt::Arguments;
 use std::io::Read;
 use std::io::Write;
+use termion::cursor::DetectCursorPos;
 use termion::raw::RawTerminal;
 
 use termion::raw::IntoRawMode;
@@ -20,6 +21,7 @@ pub struct Term {
     max_hist_len: usize,
     hist_idx: usize,
     use_hist: bool,
+    cur_pos: u16,
     stdout: RawTerminal<std::io::Stdout>,
     stdin: std::io::Stdin,
 }
@@ -39,6 +41,7 @@ impl Term {
             max_hist_len: 10,
             hist_idx: 0,
             use_hist: false,
+            cur_pos: 0,
             stdout: std::io::stdout().into_raw_mode().unwrap(),
             stdin: std::io::stdin(),
         }
@@ -52,6 +55,7 @@ impl Term {
                 self.history.len() - self.hist_idx - 1
             };
             self.line = self.history.get(idx).unwrap().clone();
+            self.cur_pos = self.line.len() as u16;
         }
     }
 
@@ -60,8 +64,15 @@ impl Term {
         match ch {
             //Backspace
             '\u{7f}' => {
-                if !self.line.is_empty() {
-                    self.line.remove(self.line.len() - 1);
+                if !self.line.is_empty() && self.cur_pos > 0 {
+                    self.line.remove(self.cur_pos as usize - 1);
+                    self.cur_pos -= 1;
+                }
+            }
+            //Delete
+            '\u{127}' => {
+                if !self.line.is_empty() && self.cur_pos < self.line.len() as u16 {
+                    self.line.remove(self.cur_pos as usize);
                 }
             }
             //Arrow Up
@@ -85,6 +96,18 @@ impl Term {
                     self.hist_idx -= 1
                 }
                 self.update_history()
+            }
+            //Arrow Left
+            '\u{ba}' => {
+                if self.cur_pos > 0 {
+                    self.cur_pos -= 1;
+                }
+            }
+            //Arrow Right
+            '\u{b9}' => {
+                if self.cur_pos < self.line.len() as u16 {
+                    self.cur_pos += 1;
+                }
             }
             _ => {}
         }
@@ -125,7 +148,8 @@ impl Term {
                     return Ok(Some(ret));
                 }
                 // print!("{ch}");
-                self.line += ch.to_string().as_str();
+                self.line.insert(self.cur_pos as usize, ch);
+                self.cur_pos += 1;
             } else {
                 self.handle_char(ch);
             }
@@ -144,12 +168,19 @@ impl Term {
         let mut buf = Buffer::default();
         self.stdin.read(&mut buf)?;
         let ret = self.parse_char(buf)?;
-        if !self.line.is_empty() {
+        let change_pos = if let Ok(mut pos) = self.stdout.cursor_pos() {
+            pos.0 = self.cur_pos + 2;
+            termion::cursor::Goto(pos.0, pos.1).to_string()
+        } else {
+            String::new()
+        };
+        if ret.is_none() {
             term_write!(
                 self,
-                "{}\r>{}",
+                "{}\r>{}{}",
                 termion::clear::CurrentLine,
-                self.line.clone()
+                self.line.clone(),
+                change_pos,
             )?;
         }
         Ok(ret)
