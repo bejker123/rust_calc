@@ -23,7 +23,7 @@ pub struct Term {
     use_hist: bool,
     cur_pos: u16,
     stdout: RawTerminal<std::io::Stdout>,
-    stdin: std::io::Stdin,
+    stdin: std::fs::File,
 }
 
 impl Drop for Term {
@@ -43,7 +43,7 @@ impl Term {
             use_hist: false,
             cur_pos: 0,
             stdout: std::io::stdout().into_raw_mode().unwrap(),
-            stdin: std::io::stdin(),
+            stdin: termion::get_tty().unwrap(),
         }
     }
 
@@ -121,6 +121,7 @@ impl Term {
         self.hist_idx = 0;
         self.use_hist = false;
         self.line.clear();
+        self.cur_pos = 0;
     }
 
     fn parse_char(&mut self, buf: Buffer) -> StringResult {
