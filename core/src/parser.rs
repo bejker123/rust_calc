@@ -99,7 +99,7 @@ fn parse_to_operations(data: Vec<Token>, known_literals: &mut KnownLiterals) -> 
     let data = data
         .iter()
         .map(|token| {
-            //Literal lookup for now only works retroactively
+            //Proactive literal lookup
             if let Token::Literal(lit) = token.clone() {
                 if let Some(val) = known_literals.get(&lit) {
                     return Token::Number(*val);
@@ -171,7 +171,7 @@ fn parse_to_operations(data: Vec<Token>, known_literals: &mut KnownLiterals) -> 
                 }
             }
         }
-        //Literal lookup for now only works retroactively
+        //Retroactive literal lookup
         if let Token::Literal(lit) = token.clone() {
             if let Some(val) = known_literals.get(&lit) {
                 prev_token = Token::Number(*val);
