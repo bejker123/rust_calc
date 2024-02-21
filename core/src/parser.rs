@@ -95,6 +95,20 @@ fn parse_to_operations(data: Vec<Token>, known_literals: &mut KnownLiterals) -> 
     let mut prev_token = Token::Invalid;
     let mut skip = 0;
     let mut ret = Op::Number(Rational::zero());
+
+    let data = data
+        .iter()
+        .map(|token| {
+            //Literal lookup for now only works retroactively
+            if let Token::Literal(lit) = token.clone() {
+                if let Some(val) = known_literals.get(&lit) {
+                    return Token::Number(*val);
+                }
+            }
+            return token.clone();
+        })
+        .collect::<Vec<_>>();
+
     for i in 0..data.len() {
         let token = data.get(i).unwrap();
         if skip > 0 {
