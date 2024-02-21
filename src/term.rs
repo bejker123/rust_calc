@@ -1,8 +1,18 @@
+use std::fmt::Arguments;
 use std::io::Read;
 use std::io::Write;
 use termion::raw::RawTerminal;
 
 use termion::raw::IntoRawMode;
+
+type Buffer = [u8; 8];
+type StringResult = Result<Option<String>, Box<dyn std::error::Error>>;
+
+macro_rules! term_write {
+    ($dst:expr, $($arg:tt)*) => {
+        $dst.write(format_args!($($arg)*))
+    };
+}
 
 pub struct Term {
     line: String,
@@ -57,7 +67,7 @@ impl Term {
                 if !self.use_hist {
                     self.use_hist = true;
                     if !self.line.is_empty() {
-                        self.history.push(self.line.clone());
+                        self.add_line_to_history();
                         self.hist_idx += 1
                     }
                 } else if self.hist_idx + 1 < self.history.len() {
@@ -78,10 +88,17 @@ impl Term {
         }
     }
 
-    pub fn next(&mut self) -> Result<Option<String>, Box<dyn std::error::Error>> {
-        let mut buf = [0, 0, 0, 0, 0, 0, 0, 0];
-        let mut stdin = std::io::stdin();
-        stdin.read(&mut buf)?;
+    fn add_line_to_history(&mut self) {
+        if self.history.len() >= self.max_hist_len {
+            self.history.remove(0);
+        }
+        self.history.push(self.line.clone());
+        self.hist_idx = 0;
+        self.use_hist = false;
+        self.line.clear();
+    }
+
+    fn parse_char(&mut self, buf: Buffer) -> StringResult {
         let nr = buf.iter().map(|x| *x as u32).reduce(|x, y| x + y).unwrap();
         let ch = char::from_u32(nr);
         // print!("{buf:?} {nr:?} {ch:?}\r\n");
@@ -94,13 +111,7 @@ impl Term {
             if ch.is_ascii_alphanumeric() || ch.is_ascii_whitespace() || ch.is_ascii_punctuation() {
                 if ch == '\r' {
                     let ret = self.line.clone();
-                    if self.history.len() >= self.max_hist_len {
-                        self.history.remove(0);
-                    }
-                    self.history.push(ret.clone());
-                    self.hist_idx = 0;
-                    self.use_hist = false;
-                    self.line.clear();
+                    self.add_line_to_history();
                     // print!("\r\n");
                     return Ok(Some(ret));
                 }
@@ -110,8 +121,24 @@ impl Term {
                 self.handle_char(ch);
             }
         }
-        print!("{}", termion::clear::CurrentLine);
-        print!("\r>{}", self.line);
         Ok(None)
+    }
+
+    pub fn write(&mut self, data: Arguments<'_>) -> std::io::Result<()> {
+        self.stdout.write_fmt(data)
+    }
+
+    pub fn next(&mut self) -> StringResult {
+        let mut buf = Buffer::default();
+        let mut stdin = std::io::stdin();
+        stdin.read(&mut buf)?;
+        let ret = self.parse_char(buf)?;
+        term_write!(
+            self,
+            "{}\r>{}",
+            termion::clear::CurrentLine,
+            self.line.clone()
+        )?;
+        Ok(ret)
     }
 }
