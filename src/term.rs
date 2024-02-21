@@ -1,4 +1,5 @@
 use std::fmt::Arguments;
+use std::io::IsTerminal;
 use std::io::Read;
 use std::io::Write;
 use termion::cursor::DetectCursorPos;
@@ -44,6 +45,29 @@ impl Term {
             cur_pos: 0,
             stdout: std::io::stdout().into_raw_mode().unwrap(),
             stdin: termion::get_tty().unwrap(),
+        }
+    }
+
+    pub fn read_pipe(&mut self) -> Option<String> {
+        let stdin = std::io::stdin();
+        if stdin.is_terminal() {
+            None
+        } else {
+            let mut stdin = stdin.lock();
+
+            let mut line = String::new();
+
+            // Could also `match` on the `Result` if you wanted to handle `Err`
+            while let Ok(n_bytes) = stdin.read_to_string(&mut line) {
+                if n_bytes == 0 {
+                    break;
+                }
+            }
+            if line.is_empty() {
+                None
+            } else {
+                Some(line)
+            }
         }
     }
 

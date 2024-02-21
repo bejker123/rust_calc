@@ -12,7 +12,14 @@ mod tokenizer;
 fn main() {
     let mut term = Term::new();
     // let mut new_line = true;
+
+    if let Some(pipe) = term.read_pipe() {
+        let pipe = pipe.trim();
+        term_write!(term, "\r{}\r\n", tokenize(pipe).parse().unwrap()).unwrap();
+        return;
+    }
     term_write!(term, ">").unwrap();
+
     loop {
         term.flush().unwrap();
         let line = match term.next() {
