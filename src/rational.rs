@@ -128,25 +128,20 @@ impl std::fmt::Display for Rational {
 }
 
 impl From<f64> for Rational {
-    fn from(p: f64) -> Rational {
-        let mut dec_places = 0;
-        let mut nr = p.abs();
-        nr = nr - (nr as u128) as f64;
-        let mant = f64::powi(10.0, f64::MIN_10_EXP);
-        loop {
-            if nr.abs() <= mant {
-                break;
+    fn from(mut p: f64) -> Rational {
+        let sp = p.to_string();
+        let sp = sp.split(".").collect::<Vec<_>>();
+        let mut q = 1.0;
+        if sp.len() == 2 {
+            if let Some(last) = sp.last() {
+                let dec_places = last.len() as i32;
+                let exponent = f64::powi(10.0, dec_places);
+                p *= exponent;
+                q *= exponent;
             }
-            nr *= 10.0;
-            dec_places += 1;
-            nr = nr - (nr as u128) as f64;
         }
 
-        Rational {
-            p: p * f64::powi(10.0, dec_places),
-            q: f64::powi(10.0, dec_places),
-        }
-        .reduce()
+        Rational { p, q }.reduce()
     }
 }
 
@@ -238,5 +233,77 @@ mod test {
     fn to_float() {
         assert_eq!(Rational::new(10.0, -2.0).to_float(), -5.0);
         assert_eq!(Rational::new(3.0, 2.0).to_float(), 3.0 / 2.0);
+    }
+
+    #[test]
+    fn from_float() {
+        assert_eq!(Rational::from(3.4), Rational::new(17.0, 5.0).reduce());
+        assert_eq!(Rational::from(0.0), Rational::new(0.0, 1.0).reduce());
+        assert_eq!(Rational::from(0.0), Rational::new(0.0, 2.0).reduce());
+        assert_eq!(Rational::from(0.0), Rational::new(0.0, 3.0).reduce());
+        assert_eq!(Rational::from(0.0), Rational::new(0.0, 4.0).reduce());
+        assert_eq!(Rational::from(0.0), Rational::new(0.0, 5.0).reduce());
+        assert_eq!(Rational::from(0.0), Rational::new(0.0, 6.0).reduce());
+        assert_eq!(Rational::from(0.0), Rational::new(0.0, 7.0).reduce());
+        assert_eq!(Rational::from(0.0), Rational::new(0.0, 8.0).reduce());
+        assert_eq!(Rational::from(0.0), Rational::new(0.0, 9.0).reduce());
+        assert_eq!(Rational::from(1.0), Rational::new(1.0, 1.0).reduce());
+        assert_eq!(Rational::from(0.5), Rational::new(1.0, 2.0).reduce());
+        assert_eq!(
+            Rational::from(0.3333333333333333),
+            Rational::new(3333333333333333.0, 10000000000000000.0).reduce()
+        );
+        assert_eq!(Rational::from(0.25), Rational::new(1.0, 4.0).reduce());
+        assert_eq!(Rational::from(0.2), Rational::new(1.0, 5.0).reduce());
+        assert_eq!(Rational::from(0.125), Rational::new(1.0, 8.0).reduce());
+        assert_eq!(Rational::from(2.0), Rational::new(2.0, 1.0).reduce());
+        assert_eq!(Rational::from(1.0), Rational::new(2.0, 2.0).reduce());
+        assert_eq!(Rational::from(0.5), Rational::new(2.0, 4.0).reduce());
+        assert_eq!(Rational::from(0.4), Rational::new(2.0, 5.0).reduce());
+        assert_eq!(Rational::from(0.25), Rational::new(2.0, 8.0).reduce());
+        assert_eq!(Rational::from(3.0), Rational::new(3.0, 1.0).reduce());
+        assert_eq!(Rational::from(1.5), Rational::new(3.0, 2.0).reduce());
+        assert_eq!(Rational::from(1.0), Rational::new(3.0, 3.0).reduce());
+        assert_eq!(Rational::from(0.75), Rational::new(3.0, 4.0).reduce());
+        assert_eq!(Rational::from(0.6), Rational::new(3.0, 5.0).reduce());
+        assert_eq!(Rational::from(0.5), Rational::new(3.0, 6.0).reduce());
+        assert_eq!(Rational::from(0.375), Rational::new(3.0, 8.0).reduce());
+        assert_eq!(Rational::from(4.0), Rational::new(4.0, 1.0).reduce());
+        assert_eq!(Rational::from(2.0), Rational::new(4.0, 2.0).reduce());
+        assert_eq!(Rational::from(1.0), Rational::new(4.0, 4.0).reduce());
+        assert_eq!(Rational::from(0.8), Rational::new(4.0, 5.0).reduce());
+        assert_eq!(Rational::from(0.5), Rational::new(4.0, 8.0).reduce());
+        assert_eq!(Rational::from(5.0), Rational::new(5.0, 1.0).reduce());
+        assert_eq!(Rational::from(2.5), Rational::new(5.0, 2.0).reduce());
+        assert_eq!(Rational::from(1.25), Rational::new(5.0, 4.0).reduce());
+        assert_eq!(Rational::from(1.0), Rational::new(5.0, 5.0).reduce());
+        assert_eq!(Rational::from(0.625), Rational::new(5.0, 8.0).reduce());
+        assert_eq!(Rational::from(6.0), Rational::new(6.0, 1.0).reduce());
+        assert_eq!(Rational::from(3.0), Rational::new(6.0, 2.0).reduce());
+        assert_eq!(Rational::from(2.0), Rational::new(6.0, 3.0).reduce());
+        assert_eq!(Rational::from(1.5), Rational::new(6.0, 4.0).reduce());
+        assert_eq!(Rational::from(1.2), Rational::new(6.0, 5.0).reduce());
+        assert_eq!(Rational::from(1.0), Rational::new(6.0, 6.0).reduce());
+        assert_eq!(Rational::from(0.75), Rational::new(6.0, 8.0).reduce());
+        assert_eq!(Rational::from(7.0), Rational::new(7.0, 1.0).reduce());
+        assert_eq!(Rational::from(3.5), Rational::new(7.0, 2.0).reduce());
+        assert_eq!(Rational::from(1.75), Rational::new(7.0, 4.0).reduce());
+        assert_eq!(Rational::from(1.4), Rational::new(7.0, 5.0).reduce());
+        assert_eq!(Rational::from(1.0), Rational::new(7.0, 7.0).reduce());
+        assert_eq!(Rational::from(0.875), Rational::new(7.0, 8.0).reduce());
+        assert_eq!(Rational::from(8.0), Rational::new(8.0, 1.0).reduce());
+        assert_eq!(Rational::from(4.0), Rational::new(8.0, 2.0).reduce());
+        assert_eq!(Rational::from(2.0), Rational::new(8.0, 4.0).reduce());
+        assert_eq!(Rational::from(1.6), Rational::new(8.0, 5.0).reduce());
+        assert_eq!(Rational::from(1.0), Rational::new(8.0, 8.0).reduce());
+        assert_eq!(Rational::from(9.0), Rational::new(9.0, 1.0).reduce());
+        assert_eq!(Rational::from(4.5), Rational::new(9.0, 2.0).reduce());
+        assert_eq!(Rational::from(3.0), Rational::new(9.0, 3.0).reduce());
+        assert_eq!(Rational::from(2.25), Rational::new(9.0, 4.0).reduce());
+        assert_eq!(Rational::from(1.8), Rational::new(9.0, 5.0).reduce());
+        assert_eq!(Rational::from(1.5), Rational::new(9.0, 6.0).reduce());
+        assert_eq!(Rational::from(1.125), Rational::new(9.0, 8.0).reduce());
+        assert_eq!(Rational::from(1.0), Rational::new(9.0, 9.0).reduce());
+        // assert_eq!(Rational::new(3.0, 2.0).to_float(), 3.0 / 2.0);
     }
 }
