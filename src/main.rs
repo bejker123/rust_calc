@@ -34,7 +34,7 @@ fn main() {
             }
         };
         if let Some(line) = line {
-            print!("\r\n");
+            term_write!(term, "\r\n").unwrap();
             let out = dbg_tokenize(&line).parse();
             match out {
                 Ok(o) => {
