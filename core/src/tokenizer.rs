@@ -260,7 +260,7 @@ mod test {
         assert_eq!(
             tokenize("a 1*123"),
             vec![
-                Token::Invalid,
+                Token::Literal(String::from("a")),
                 Token::Number(1.0.into()),
                 Token::Op(OpType::Mul),
                 Token::Number(123.0.into())

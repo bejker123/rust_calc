@@ -194,17 +194,22 @@ fn parse_to_operations(data: Vec<Token>, known_literals: &mut KnownLiterals) -> 
 }
 
 mod test {
+
     #[cfg(test)]
-    use super::{parse_to_operations, Op, OpType, Token};
+    use super::{parse_to_operations, KnownLiterals, Op, OpType, Token};
 
     #[test]
     fn test_parse_to_operations() {
+        let mut known_literals = KnownLiterals::new();
         assert_eq!(
-            parse_to_operations(vec![
-                Token::Number(2.0.into()),
-                Token::Op(OpType::Mul),
-                Token::Number(2.0.into()),
-            ])
+            parse_to_operations(
+                vec![
+                    Token::Number(2.0.into()),
+                    Token::Op(OpType::Mul),
+                    Token::Number(2.0.into()),
+                ],
+                &mut known_literals
+            )
             .unwrap(),
             Op::Mul(
                 Box::new(Op::Number(2.0.into())),
@@ -212,11 +217,14 @@ mod test {
             )
         );
         assert_eq!(
-            parse_to_operations(vec![
-                Token::Number(2.0.into()),
-                Token::Op(OpType::Div),
-                Token::Number(2.0.into()),
-            ])
+            parse_to_operations(
+                vec![
+                    Token::Number(2.0.into()),
+                    Token::Op(OpType::Div),
+                    Token::Number(2.0.into()),
+                ],
+                &mut known_literals
+            )
             .unwrap(),
             Op::Div(
                 Box::new(Op::Number(2.0.into())),
@@ -224,11 +232,14 @@ mod test {
             )
         );
         assert_eq!(
-            parse_to_operations(vec![
-                Token::Number(2.0.into()),
-                Token::Op(OpType::Add),
-                Token::Number(2.0.into()),
-            ])
+            parse_to_operations(
+                vec![
+                    Token::Number(2.0.into()),
+                    Token::Op(OpType::Add),
+                    Token::Number(2.0.into()),
+                ],
+                &mut known_literals
+            )
             .unwrap(),
             Op::Add(
                 Box::new(Op::Number(2.0.into())),
@@ -236,11 +247,14 @@ mod test {
             )
         );
         assert_eq!(
-            parse_to_operations(vec![
-                Token::Number(2.0.into()),
-                Token::Op(OpType::Sub),
-                Token::Number(2.0.into()),
-            ])
+            parse_to_operations(
+                vec![
+                    Token::Number(2.0.into()),
+                    Token::Op(OpType::Sub),
+                    Token::Number(2.0.into()),
+                ],
+                &mut known_literals
+            )
             .unwrap(),
             Op::Sub(
                 Box::new(Op::Number(2.0.into())),
@@ -248,13 +262,16 @@ mod test {
             )
         );
         assert_eq!(
-            parse_to_operations(vec![
-                Token::Number(2.0.into()),
-                Token::Op(OpType::Sub),
-                Token::Number(2.0.into()),
-                Token::Op(OpType::Div),
-                Token::Number(3.0.into()),
-            ])
+            parse_to_operations(
+                vec![
+                    Token::Number(2.0.into()),
+                    Token::Op(OpType::Sub),
+                    Token::Number(2.0.into()),
+                    Token::Op(OpType::Div),
+                    Token::Number(3.0.into()),
+                ],
+                &mut known_literals
+            )
             .unwrap(),
             Op::Sub(
                 Box::new(Op::Number(2.0.into())),
@@ -265,13 +282,16 @@ mod test {
             )
         );
         assert_eq!(
-            parse_to_operations(vec![
-                Token::Number(2.0.into()),
-                Token::Op(OpType::Mul),
-                Token::Number(2.0.into()),
-                Token::Op(OpType::Div),
-                Token::Number(3.0.into()),
-            ])
+            parse_to_operations(
+                vec![
+                    Token::Number(2.0.into()),
+                    Token::Op(OpType::Mul),
+                    Token::Number(2.0.into()),
+                    Token::Op(OpType::Div),
+                    Token::Number(3.0.into()),
+                ],
+                &mut known_literals
+            )
             .unwrap(),
             Op::Div(
                 Box::new(Op::Mul(
@@ -282,7 +302,11 @@ mod test {
             )
         );
         assert_eq!(
-            parse_to_operations(vec![Token::Op(OpType::Root), Token::Number(2.0.into())]).unwrap(),
+            parse_to_operations(
+                vec![Token::Op(OpType::Root), Token::Number(2.0.into())],
+                &mut known_literals
+            )
+            .unwrap(),
             Op::Root(Box::new(Op::Number(2.0.into())))
         );
     }
