@@ -3,6 +3,12 @@ use std::fmt::{Debug, Write};
 
 use crate::Rational;
 
+#[derive(Clone, Copy, Debug, Default)]
+pub struct TokenizerOptions {
+    pub debug: bool,
+    pub as_float: bool,
+}
+
 // #[derive(Debug, PartialEq, Clone)]
 // pub enum Unit {
 //     Kilometer,
@@ -120,6 +126,26 @@ fn split<'a>(mut s: &'a str) -> Vec<&'a str> {
         }
     }
     ret
+}
+
+pub fn pre_tokenize(s: &str) -> (&str, TokenizerOptions) {
+    let mut ret = TokenizerOptions::default();
+    if let Some(sep_idx) = s.find('#') {
+        for i in s[..sep_idx].chars().into_iter() {
+            match i {
+                'd' => {
+                    ret.debug = true;
+                }
+                'f' => {
+                    ret.as_float = true;
+                }
+                _ => {}
+            }
+        }
+        (&s[sep_idx + 1..], ret)
+    } else {
+        (s, ret)
+    }
 }
 
 pub fn dbg_tokenize(s: &str) -> Vec<(String, Token)> {
