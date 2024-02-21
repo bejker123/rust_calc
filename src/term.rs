@@ -21,6 +21,7 @@ pub struct Term {
     hist_idx: usize,
     use_hist: bool,
     stdout: RawTerminal<std::io::Stdout>,
+    stdin: std::io::Stdin,
 }
 
 impl Drop for Term {
@@ -39,6 +40,7 @@ impl Term {
             hist_idx: 0,
             use_hist: false,
             stdout: std::io::stdout().into_raw_mode().unwrap(),
+            stdin: std::io::stdin(),
         }
     }
 
@@ -130,8 +132,7 @@ impl Term {
 
     pub fn next(&mut self) -> StringResult {
         let mut buf = Buffer::default();
-        let mut stdin = std::io::stdin();
-        stdin.read(&mut buf)?;
+        self.stdin.read(&mut buf)?;
         let ret = self.parse_char(buf)?;
         if !self.line.is_empty() {
             term_write!(
