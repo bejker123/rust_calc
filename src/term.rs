@@ -126,6 +126,9 @@ impl Term {
         Ok(None)
     }
 
+    pub fn flush(&mut self) -> std::io::Result<()> {
+        self.stdout.flush()
+    }
     pub fn write(&mut self, data: Arguments<'_>) -> std::io::Result<()> {
         self.stdout.write_fmt(data)
     }

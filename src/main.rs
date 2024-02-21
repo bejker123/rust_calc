@@ -1,5 +1,3 @@
-use std::io::Write;
-
 use term::Term;
 
 use crate::{parser::Parse, rational::*, tokenizer::*};
@@ -22,11 +20,12 @@ fn main() {
     //         .apply()
     //         .expect_err("")
     // );
+
     let mut term = Term::new();
     // let mut new_line = true;
     term_write!(term, ">").unwrap();
     loop {
-        std::io::stdout().flush().unwrap();
+        term.flush().unwrap();
         let line = match term.next() {
             Ok(o) => o,
             Err(e) => {
