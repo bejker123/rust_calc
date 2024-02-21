@@ -1,7 +1,7 @@
 use crate::op::OpType;
 use std::fmt::{Debug, Write};
 
-use crate::Rational;
+use crate::rational::Rational;
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct TokenizerOptions {

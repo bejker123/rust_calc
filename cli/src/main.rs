@@ -1,13 +1,12 @@
-use term::Term;
+use calc_core::parser::Parse;
+use calc_core::tokenizer::dbg_tokenize;
+use calc_core::tokenizer::pre_tokenize;
+use calc_core::tokenizer::tokenize;
 
-use crate::{parser::Parse, rational::*, tokenizer::*};
+use crate::term::Term;
 
-mod op;
-mod parser;
-mod rational;
 #[macro_use]
 mod term;
-mod tokenizer;
 
 fn main() {
     let mut term = Term::new();

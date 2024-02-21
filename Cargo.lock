@@ -15,6 +15,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed570934406eb16438a4e976b1b4500774099c13b8cb96eec99f620f05090ddf"
 
 [[package]]
+name = "calc-core"
+version = "0.1.0"
+
+[[package]]
+name = "cli"
+version = "0.1.0"
+dependencies = [
+ "calc-core",
+ "termion",
+]
+
+[[package]]
 name = "libc"
 version = "0.2.153"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -51,13 +63,6 @@ name = "redox_termios"
 version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20145670ba436b55d91fc92d25e71160fbfbdd57831631c8d7d36377a476f1cb"
-
-[[package]]
-name = "rust_calc"
-version = "0.1.0"
-dependencies = [
- "termion",
-]
 
 [[package]]
 name = "termion"

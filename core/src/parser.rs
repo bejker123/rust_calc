@@ -1,5 +1,5 @@
 use crate::op::{Op, OpType};
-use crate::{DbgDisplay, Rational, Token, TokenType};
+use crate::{rational::Rational, tokenizer::DbgDisplay, tokenizer::Token, tokenizer::TokenType};
 
 pub trait Parse {
     fn parse(self) -> Result<Rational, String>;

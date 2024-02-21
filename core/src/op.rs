@@ -1,4 +1,4 @@
-use crate::Rational;
+use crate::rational::Rational;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum OpType {

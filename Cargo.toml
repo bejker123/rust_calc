@@ -1,9 +1,15 @@
-[package]
-name = "rust_calc"
+[workspace]
+members = ["core", "cli"]
+resolver="2"
+[workspace.package]
+# name = "rust_calc"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[dependencies]
-termion = "3.0.0"
+
+[workspace.dependencies]
+calc-core = { version = "0.1.0", path = "./core" }
+
+
