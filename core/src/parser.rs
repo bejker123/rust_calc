@@ -43,7 +43,9 @@ fn sanitase(mut data: Vec<Token>) -> Result<Vec<Token>, String> {
         //         op_append = true;
         //     }
         // }
-        if (type_ == TokenType::Number || op_append) && prev_type == TokenType::Number {
+        if (type_ == TokenType::Number || type_ == TokenType::Literal || op_append)
+            && (prev_type == TokenType::Number || prev_type == TokenType::Literal)
+        {
             if i >= 2 {
                 if !(data[i - 2].get_type() == TokenType::Op
                     && data[i - 2].as_op_type().unwrap().is_forward())
@@ -84,17 +86,6 @@ fn parse_to_operations(data: Vec<Token>, known_literals: &mut KnownLiterals) -> 
     if data.contains(&Token::Invalid) {
         return Err(String::from("Stream contains invalid tokens"));
     }
-    if data.is_empty() {
-        return Ok(Op::Number(
-            data.first()
-                .ok_or("Stream empty")?
-                .as_nr()
-                .ok_or("Failed to parse stream.")?,
-        ));
-    }
-    let mut prev_token = Token::Invalid;
-    let mut skip = 0;
-    let mut ret = Op::Number(Rational::zero());
 
     let data = data
         .iter()
@@ -108,6 +99,19 @@ fn parse_to_operations(data: Vec<Token>, known_literals: &mut KnownLiterals) -> 
             return token.clone();
         })
         .collect::<Vec<_>>();
+
+    if data.len() <= 1 {
+        return Ok(Op::Number(
+            data.first()
+                .ok_or("Stream empty")?
+                .as_nr()
+                .ok_or("Failed to parse stream.")?,
+        ));
+    }
+
+    let mut prev_token = Token::Invalid;
+    let mut skip = 0;
+    let mut ret = Op::Number(Rational::zero());
 
     for i in 0..data.len() {
         let token = data.get(i).unwrap();
