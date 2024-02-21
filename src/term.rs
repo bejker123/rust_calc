@@ -101,7 +101,14 @@ impl Term {
     }
 
     fn parse_char(&mut self, buf: Buffer) -> StringResult {
-        let nr = buf.iter().map(|x| *x as u32).reduce(|x, y| x + y).unwrap();
+        let nr = buf
+            .iter()
+            .map(|x| *x as u32)
+            .reduce(|x, y| x + y)
+            .ok_or(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                String::from("Failed to reduce bytes to u32."),
+            ))?;
         let ch = char::from_u32(nr);
         // print!("{buf:?} {nr:?} {ch:?}\r\n");
         if buf == [3, 0, 0, 0, 0, 0, 0, 0] {
