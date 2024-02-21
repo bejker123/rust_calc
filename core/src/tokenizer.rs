@@ -23,6 +23,8 @@ pub enum TokenType {
     // Unit,
     OpenP,
     CloseP,
+    Literal,
+    Eq,
     Invalid,
 }
 
@@ -33,6 +35,8 @@ pub enum Token {
     // Unit(Unit),
     OpenP,
     CloseP,
+    Literal(String),
+    Eq,
     Invalid,
 }
 
@@ -44,6 +48,8 @@ impl Token {
             // Token::Unit(_) => TokenType::Unit,
             Token::OpenP => TokenType::OpenP,
             Token::CloseP => TokenType::CloseP,
+            Token::Literal(_) => TokenType::Literal,
+            Token::Eq => TokenType::Eq,
             Token::Invalid => TokenType::Invalid,
         }
     }
@@ -90,7 +96,7 @@ impl DbgDisplay for Vec<(String, Token)> {
 }
 
 fn split<'a>(mut s: &'a str) -> Vec<&'a str> {
-    let pats = [' ', '*', '/', '+', '-', '^', '(', ')', '%'];
+    let pats = [' ', '*', '/', '+', '-', '^', '(', ')', '%', '='];
     let mut ret = Vec::new();
     // println!("Splitting: {s:?}");
     loop {
@@ -175,12 +181,13 @@ fn _tokenize(x: &str) -> Token {
         "(" => Token::OpenP,
         ")" => Token::CloseP,
         "%" => Token::Op(OpType::Mod),
+        "=" => Token::Eq,
 
         y => {
             if let Ok(o) = y.parse::<f64>() {
                 Token::Number(Rational::from(o))
             } else {
-                Token::Invalid
+                Token::Literal(y.to_owned())
             }
         }
     }

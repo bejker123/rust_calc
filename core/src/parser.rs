@@ -1,25 +1,29 @@
+use std::collections::HashMap;
+
 use crate::op::{Op, OpType};
 use crate::{rational::Rational, tokenizer::DbgDisplay, tokenizer::Token, tokenizer::TokenType};
 
+pub type KnownLiterals = HashMap<String, Rational>;
+
 pub trait Parse {
-    fn parse(self) -> Result<Rational, String>;
+    fn parse(self, known_literals: &mut KnownLiterals) -> Result<Rational, String>;
 }
 
 impl Parse for Vec<Token> {
-    fn parse(self) -> Result<Rational, String> {
-        Ok(parse_to_operations(sanitase(self)?)?.apply())
+    fn parse(self, known_literals: &mut KnownLiterals) -> Result<Rational, String> {
+        Ok(parse_to_operations(sanitase(self)?, known_literals)?.apply())
     }
 }
 
 impl Parse for Vec<(String, Token)> {
-    fn parse(self) -> Result<Rational, String> {
+    fn parse(self, known_literals: &mut KnownLiterals) -> Result<Rational, String> {
         println!(
             "{}",
             self.dbg()
                 .unwrap_or(String::from("Failed to display token stream"))
         );
         let out = self.into_iter().map(|x| x.1).collect();
-        Ok(parse_to_operations(sanitase(out)?)?.apply())
+        Ok(parse_to_operations(sanitase(out)?, known_literals)?.apply())
     }
 }
 
@@ -75,12 +79,12 @@ macro_rules! prev_token {
     };
 }
 
-fn parse_to_operations(data: Vec<Token>) -> Result<Op, String> {
+fn parse_to_operations(data: Vec<Token>, known_literals: &mut KnownLiterals) -> Result<Op, String> {
     // println!("parse_to_operations:");
     if data.contains(&Token::Invalid) {
         return Err(String::from("Stream contains invalid tokens"));
     }
-    if data.len() <= 1 {
+    if data.is_empty() {
         return Ok(Op::Number(
             data.first()
                 .ok_or("Stream empty")?
@@ -137,8 +141,36 @@ fn parse_to_operations(data: Vec<Token>) -> Result<Op, String> {
                     ret = Op::from_type(op_type, Some(prev), Some(next_token!(data, i, 1)));
                 }
             }
+        } else if token.get_type() == TokenType::Eq {
+            if let Token::Literal(prev) = prev_token.clone() {
+                let next_token = data
+                    .get(i + 1)
+                    .ok_or(format!("Expected token at: {}", i + 1))?;
+                if let Token::Literal(next) = next_token {
+                    if let Some(next) = known_literals.get(next) {
+                        ret = Op::Number(next.clone());
+                        known_literals.insert(prev, *next);
+                    }
+                } else if let Token::Number(next) = next_token {
+                    ret = Op::Number(next.clone());
+                    known_literals.insert(prev, *next);
+                }
+            }
         }
-        prev_token = token.clone();
+        //Literal lookup for now only works retroactively
+        if let Token::Literal(lit) = token.clone() {
+            if let Some(val) = known_literals.get(&lit) {
+                prev_token = Token::Number(*val);
+                ret = Op::Number(*val);
+            } else {
+                if i + 1 > data.len() - 1 {
+                    return Err(format!("Unknown literal: {lit:?}"));
+                }
+                prev_token = token.clone();
+            }
+        } else {
+            prev_token = token.clone();
+        }
     }
     Ok(ret)
 }
