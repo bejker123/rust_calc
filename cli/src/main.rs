@@ -1,8 +1,7 @@
-use calc_core::parser::KnownLiterals;
-use calc_core::parser::Parse;
-use calc_core::tokenizer::dbg_tokenize;
-use calc_core::tokenizer::pre_tokenize;
-use calc_core::tokenizer::tokenize;
+use calc_core::{
+    parser::{KnownLiterals, Parse},
+    tokenizer::{dbg_tokenize, pre_tokenize, tokenize},
+};
 
 use crate::term::Term;
 
