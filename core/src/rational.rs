@@ -1,4 +1,6 @@
-#[derive(Clone, Copy, PartialEq)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Copy, PartialEq, PartialOrd, Serialize, Deserialize)]
 pub struct Rational {
     p: f64, //numerator
     q: f64, //denominator
