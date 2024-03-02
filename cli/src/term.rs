@@ -1,7 +1,8 @@
+use io::IsTerminal;
+use io::Read;
+use io::Write;
 use std::fmt::Arguments;
-use std::io::IsTerminal;
-use std::io::Read;
-use std::io::Write;
+use std::io;
 use termion::cursor::DetectCursorPos;
 use termion::raw::RawTerminal;
 
@@ -16,6 +17,57 @@ macro_rules! term_write {
     };
 }
 
+macro_rules! term_writeln {
+    ($dst:expr, $($arg:tt)*) => {
+        $dst.writeln(format_args!($($arg)*))
+    };
+}
+
+enum StdoutOpt {
+    Stdout(io::Stdout),
+    Raw(RawTerminal<io::Stdout>),
+}
+
+impl io::Write for StdoutOpt {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        match self {
+            StdoutOpt::Raw(x) => x.write(buf),
+            StdoutOpt::Stdout(x) => x.write(buf),
+        }
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        match self {
+            StdoutOpt::Raw(x) => x.flush(),
+            StdoutOpt::Stdout(x) => x.flush(),
+        }
+    }
+}
+
+impl StdoutOpt {
+    pub fn new() -> Self {
+        if io::stdout().is_terminal() {
+            StdoutOpt::Raw(io::stdout().into_raw_mode().unwrap())
+        } else {
+            StdoutOpt::Stdout(io::stdout())
+        }
+    }
+
+    pub fn lock(&mut self) -> io::StdoutLock<'_> {
+        match self {
+            StdoutOpt::Raw(x) => x.lock(),
+            StdoutOpt::Stdout(x) => x.lock(),
+        }
+    }
+
+    pub fn suspend_raw_mode(&mut self) -> Result<(), io::Error> {
+        match self {
+            StdoutOpt::Raw(x) => x.suspend_raw_mode(),
+            StdoutOpt::Stdout(_) => Ok(()),
+        }
+    }
+}
+
 pub struct Term {
     line: String,
     history: Vec<String>,
@@ -23,7 +75,7 @@ pub struct Term {
     hist_idx: usize,
     use_hist: bool,
     cur_pos: u16,
-    stdout: RawTerminal<std::io::Stdout>,
+    stdout: StdoutOpt,
     stdin: std::fs::File,
 }
 
@@ -43,13 +95,13 @@ impl Term {
             hist_idx: 0,
             use_hist: false,
             cur_pos: 0,
-            stdout: std::io::stdout().into_raw_mode().unwrap(),
+            stdout: StdoutOpt::new(),
             stdin: termion::get_tty().unwrap(),
         }
     }
 
     pub fn read_pipe(&mut self) -> Option<String> {
-        let stdin = std::io::stdin();
+        let stdin = io::stdin();
         if stdin.is_terminal() {
             None
         } else {
@@ -153,15 +205,15 @@ impl Term {
             .iter()
             .map(|x| *x as u32)
             .reduce(|x, y| x + y)
-            .ok_or(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            .ok_or(io::Error::new(
+                io::ErrorKind::Other,
                 String::from("Failed to reduce bytes to u32."),
             ))?;
         let ch = char::from_u32(nr);
         // print!("{buf:?} {nr:?} {ch:?}\r\n");
         if buf == [3, 0, 0, 0, 0, 0, 0, 0] {
-            return Err(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Interrupted,
+            return Err(Box::new(io::Error::new(
+                io::ErrorKind::Interrupted,
                 String::from("Ctrl-C"),
             )));
         } else if let Some(ch) = ch {
@@ -182,11 +234,21 @@ impl Term {
         Ok(None)
     }
 
-    pub fn flush(&mut self) -> std::io::Result<()> {
+    pub fn flush(&mut self) -> io::Result<()> {
         self.stdout.flush()
     }
-    pub fn write(&mut self, data: Arguments<'_>) -> std::io::Result<()> {
+
+    pub fn write(&mut self, data: Arguments<'_>) -> io::Result<()> {
         self.stdout.write_fmt(data)
+    }
+
+    pub fn writeln(&mut self, data: Arguments<'_>) -> io::Result<()> {
+        self.stdout.write_fmt(data)?;
+        if io::stdout().is_terminal() {
+            self.stdout.write(b"\r")?;
+        }
+        let _ = self.stdout.write(b"\n")?;
+        Ok(())
     }
 
     pub fn next(&mut self) -> StringResult {
